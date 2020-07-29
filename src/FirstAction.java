@@ -1,48 +1,39 @@
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import com.intellij.openapi.actionSystem.*;
-import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.fileChooser.FileChooser;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.ui.WindowWrapper;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.util.io.java.impl.ClassFileBuilderImpl;
-import com.sun.jna.Structure;
 import japa.parser.JavaParser;
 import japa.parser.ParseException;
-import japa.parser.ast.Comment;
 import japa.parser.ast.CompilationUnit;
-import japa.parser.ast.ImportDeclaration;
-import japa.parser.ast.PackageDeclaration;
-import japa.parser.ast.body.BodyDeclaration;
-import japa.parser.ast.body.JavadocComment;
-import japa.parser.ast.body.TypeDeclaration;
-import japa.parser.ast.expr.AnnotationExpr;
+import japa.parser.ast.body.*;
+import japa.parser.ast.type.ClassOrInterfaceType;
+import japa.parser.ast.type.ReferenceType;
+import japa.parser.ast.type.Type;
 import javassist.bytecode.ClassFile;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.SystemIndependent;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileSystemView;
 import javax.tools.JavaCompiler;
-import javax.tools.JavaFileManager;
-import javax.tools.JavaFileObject;
 import javax.tools.ToolProvider;
 import java.io.*;
-import java.lang.reflect.Field;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLClassLoader;
-import java.nio.file.FileSystem;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 public class FirstAction extends AnAction {
+
+    static List<String> typesToNumber = Arrays.asList("int", "Integer", "byte", "Byte", "short", "Short", "long", "Long", "float", "Float", "double", "Double");
+    static List<String> typesToString = Arrays.asList("String");
+    static List<String> typesToBoolean = Arrays.asList("boolean", "Boolean");
+    static List<String> typesToAny = Arrays.asList("Object");
+
+
     /**
      * 点击菜单就会执行这个
      * @param event
@@ -255,38 +246,96 @@ public class FirstAction extends AnAction {
     }
 
 
-    public void JavaBaseTypes(){
 
-        List<String> typesToNumber = Arrays.asList("int", "Integer", "byte", "Byte", "short", "Short", "long", "Long", "float", "Float", "double", "Double");
-        List<String> typesToString = Arrays.asList("String");
-        List<String> typesToBoolean = Arrays.asList("boolean", "Boolean");
-        List<String> typesToAny = Arrays.asList("Object");
-
-    }
 
     public static void main(String[] args) throws IOException, ParseException {
         String javaFilePath = "E:/diandaxia/common/src/main/java/com/diandaxia/common/sdk/demo/Trade.java";
         CompilationUnit parse = JavaParser.parse(new File(javaFilePath),"utf-8");
-        PackageDeclaration aPackage = parse.getPackage();
-        List<Comment> comments = parse.getComments();
-        System.err.println(1);
+        StringBuilder typeScriptFileContent = new StringBuilder();
+        List<TypeDeclaration> types = parse.getTypes();
+        // 获取第一个class
+        TypeDeclaration javaClass = types.get(0);
+        String javaClassName = javaClass.getName();
+        typeScriptFileContent.append("class " + javaClassName+ " {\n");
+        List<BodyDeclaration> members = javaClass.getMembers();
+
+        members.forEach(member -> {
+             if(member instanceof FieldDeclaration){
+                 FieldDeclaration field = (FieldDeclaration)member;
+                 // 先放注解
+                 JavadocComment javaDoc = field.getJavaDoc();
+                 if (javaDoc != null){
+                     String content = javaDoc.getContent();
+                     if (content != null){
+                         typeScriptFileContent.append(content);
+                     }
+                 }
+                 // 字段权限
+                 int modifiers = field.getModifiers();
+                 if (modifiers == 1){
+                     typeScriptFileContent.append("    public ");
+                 }else if(modifiers == 2){
+                     typeScriptFileContent.append("    private ");
+                 }
+                 // 字段名称
+                 List<VariableDeclarator> variables = field.getVariables();
+                 VariableDeclarator variable = variables.get(0);
+                 String name = variable.getId().getName();
+                 typeScriptFileContent.append("name: ");
+                 // 字段类型
+                 ReferenceType type = (ReferenceType)field.getType();
+                 ClassOrInterfaceType classOrInterfaceType = (ClassOrInterfaceType)type.getType();
+                 // 获得类型的名称 String还是Inter之类的
+                 String typeName = classOrInterfaceType.getName();
+                 int arrayCount = type.getArrayCount();
+                 // arrayCount == 1 是数组[]
+                 if (arrayCount == 1){
+
+                     typeScriptFileContent.append("Array<"+typeName+">;\n");
+                 }else if(arrayCount == 0){
+                     // 可能是List，也是能是基础数据类型
+                     if("List".equals(typeName)){
+                         String string = classOrInterfaceType.toString();
+                         String replace = string.replace("List<", "Array<");
+                         typeScriptFileContent.append(replace+";\n");
+                     }else{
+                         // 基础数据类型
+                         String typeScriptDataType = getTypeScriptDataType(typeName);
+                         typeScriptFileContent.append(typeScriptDataType+";\n");
+                     }
+                 }
+
+
+             }else if( member instanceof MethodDeclaration){
+                 // 方法
+                 member = (MethodDeclaration)member;
+
+
+             }
+        });
+
+
+
+        typeScriptFileContent.append("}\n");
 
 
     }
 
-    private static void parseFile(byte[] data){
-
-        //输出魔数
-
-        System.out.print("魔数(magic):0x");
-        System.out.print(Integer.toHexString(data[0]).substring(6).toUpperCase());
-        System.out.print(Integer.toHexString(data[1]).substring(6).toUpperCase());
-        System.out.print(Integer.toHexString(data[2]).substring(6).toUpperCase());
-        System.out.println(Integer.toHexString(data[3]).substring(6).toUpperCase());
-        //主版本号和次版本号码
-        int minor_version = (((int)data[4]) << 8) + data[5];
-        int major_version = (((int)data[6]) << 8) + data[7];
-        System.out.println("版本号(version):" + major_version + "." + minor_version);
+    /**
+     * 获取文件的类型
+     * @param type
+     * @return
+     */
+    public static String getTypeScriptDataType(String type){
+        if (typesToString.indexOf(type) != -1){
+            return "string";
+        }else if (typesToNumber.indexOf(type) != -1){
+            return "number";
+        }else if(typesToBoolean.indexOf(type) != -1){
+            return "boolean";
+        }else {
+            return "any";
+        }
     }
 
 
