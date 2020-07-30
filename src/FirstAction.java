@@ -13,6 +13,7 @@ import japa.parser.ast.CompilationUnit;
 
 import japa.parser.ast.ImportDeclaration;
 import japa.parser.ast.PackageDeclaration;
+import japa.parser.ast.TypeParameter;
 import japa.parser.ast.body.*;
 import japa.parser.ast.expr.NameExpr;
 import japa.parser.ast.stmt.BlockStmt;
@@ -162,7 +163,7 @@ public class FirstAction extends AnAction {
 
             List<TypeDeclaration> types = parse.getTypes();
             // 获取第一个class
-            TypeDeclaration javaClass = types.get(0);
+            ClassOrInterfaceDeclaration javaClass = (ClassOrInterfaceDeclaration)types.get(0);
             // 临时的成员，用于查找属性，用户辨认是否在当前文件
             List<BodyDeclaration> temMembers = javaClass.getMembers();
             // 获取members中所有的java类型
@@ -181,7 +182,37 @@ public class FirstAction extends AnAction {
             }
 
             String javaClassName = javaClass.getName();
-            typeScriptFileContent.append("class " + javaClassName+ " {\n");
+            int classModifiers = javaClass.getModifiers();
+            // public :1  默认 0 ，private: 2, protected: 4 public abstract :1025 ,abstract = 1024
+            if(classModifiers == 1){
+                // public 类什么都不放
+                typeScriptFileContent.append("");
+            }else if(classModifiers == 1024 || classModifiers == 1025){
+                typeScriptFileContent.append("abstract ");
+            }
+
+            if (javaClass.isInterface()){
+                typeScriptFileContent.append("interface " + javaClassName+ " {\n");
+            }else{
+                typeScriptFileContent.append("class " + javaClassName+ " ");
+                // 泛型
+                List<TypeParameter> typeParameters = javaClass.getTypeParameters();
+                if(typeParameters != null){
+                    String typeParameterString = typeParameters.get(0).toString();
+                    typeScriptFileContent.append("<"+typeParameterString+">");
+
+                }
+                // 继承
+                List<ClassOrInterfaceType> anExtends = javaClass.getExtends();
+                if (anExtends != null){
+                    String extendsString = anExtends.get(0).toString();
+                    typeScriptFileContent.append(" extends "+ extendsString);
+                }
+
+
+                typeScriptFileContent.append("{\n");
+            }
+
             List<BodyDeclaration> members = javaClass.getMembers();
 
             members.forEach(member -> {
@@ -332,7 +363,9 @@ public class FirstAction extends AnAction {
     }
 
     public static void main(String[] args) throws IOException, ParseException {
-        String javaFilePath = "E:/diandaxia/common/src/main/java/com/diandaxia/common/sdk/demo/Trade.java";
+//        String javaFilePath = "E:/diandaxia/common/src/main/java/com/diandaxia/common/sdk/taobao/TaobaoTradesSoldGetRequest.java";
+//        String javaFilePath = "E:/diandaxia/common/src/main/java/com/diandaxia/common/sdk/DdxBaseResponse.java";
+        String javaFilePath = "E:/diandaxia/common/src/main/java/com/diandaxia/common/sdk/DdxBaseRequest.java";
         String savePath = "D:/lqq/test";
         javaFileToTypescriptFile(javaFilePath, savePath);
 
