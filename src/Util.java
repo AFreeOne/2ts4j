@@ -133,8 +133,17 @@ public class Util {
             }else{
                 // list 之类
 
+
+
                 String childReturnType = getReturnType(typeArgs.get(0));
-                returnType = "Array<"+childReturnType+">";
+
+
+                if(  "Class".equals(classOrInterfaceType.getName())){
+                    returnType = getTypeScriptDataType(childReturnType+"|Function ");
+                }else{
+                    returnType = "Array<"+childReturnType+">";
+                }
+
             }
 
         }else{

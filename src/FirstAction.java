@@ -190,6 +190,7 @@ public class FirstAction extends AnAction {
             }else if(classModifiers == 1024 || classModifiers == 1025){
                 typeScriptFileContent.append("abstract ");
             }
+            Class<InternalError> Intergt = null;
 
             if (javaClass.isInterface()){
                 typeScriptFileContent.append("interface " + javaClassName+ " {\n");
@@ -322,6 +323,8 @@ public class FirstAction extends AnAction {
             methodTemplate.append("public ");
         }else if(modifiers == 2){
             methodTemplate.append("private ");
+        }else if(modifiers == 1024 || modifiers == 1025){
+            methodTemplate.append("abstract ");
         }
         // 方法名
         String name = method.getName();
@@ -342,7 +345,7 @@ public class FirstAction extends AnAction {
             methodTemplate.append("("+parametersJoin+"): ");
         }
 
-        // 方法的放回类型
+        // 方法的返回类型
         Type type = method.getType();
         if(type instanceof VoidType){
             methodTemplate.append("void");
@@ -350,12 +353,18 @@ public class FirstAction extends AnAction {
             String returnType = Util.getReturnType(type);
             methodTemplate.append(returnType);
         }
-
-        // 方法体
-        BlockStmt body = method.getBody();
-        if(body != null){
-            String methodBNodyString = body.toString();
-            methodTemplate.append(methodBNodyString + "\n");
+        // abstract抽象方法没方法体
+        if(modifiers == 1024 || modifiers == 1025){
+            // 给抽象方法添加结束符
+            methodTemplate.append(";\n ");
+        }else{
+            // 方法体
+            BlockStmt body = method.getBody();
+            if(body != null){
+                String methodBNodyString = body.toString();
+                methodTemplate.append(methodBNodyString + "\n");
+            }
+            return methodTemplate.toString();
         }
         return methodTemplate.toString();
 
