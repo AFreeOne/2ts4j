@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/2ts4j.iml" filepath="$PROJECT_DIR$/2ts4j.iml" />
+      <module fileurl="file://$PROJECT_DIR$/jbean2tsbean.iml" filepath="$PROJECT_DIR$/jbean2tsbean.iml" />
     </modules>
   </component>
 </project>
