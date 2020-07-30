@@ -347,9 +347,11 @@ public class FirstAction extends AnAction {
 
                     // 方法体
                     BlockStmt body = method.getBody();
+                    if(body != null){
+                        String methodBNodyString = body.toString();
+                        typeScriptFileContent.append(methodBNodyString + "\n");
+                    }
 
-                    String methodBNodyString = body.toString();
-                    typeScriptFileContent.append(methodBNodyString + "\n");
                 }
             });
 

@@ -1,15 +1,18 @@
 <idea-plugin>
   <id>org.freeone.2ts4j</id>
-  <name>右键菜单</name>
-  <version>1.0</version>
+  <name>j-bean to ts-bean</name>
+  <version>0.0.1</version>
   <vendor email="fackone@qq.com" url="http://www.baidu.com">hahah</vendor>
 
   <description><![CDATA[
-     右键右键右键右键右键右键右键右键右键右键右键右键右键右键右键右键右键右键右键右键右键右键右键右键右键右键右键右键右键右键右键右键右键右键右键右键右键右键右键右键右键右键右键右键右键右键右键右键右键右键右键右键右键右键右键
+     1. 仅支持普通java bean 转成ts对象
+     2. 已知|可能存在的问题：
+        (1). 多层泛型可能会出错
+        (2). ts文件import的路径可能不正确
     ]]></description>
 
   <change-notes><![CDATA[
-      note note note note note note note note note note note note note note note note note note note note note note note note note note note note note note note note note note note note note note note
+      2020-07-30 完成0.0.1
     ]]>
   </change-notes>
 
@@ -26,9 +29,9 @@
 
   <actions>
     <!-- Add your actions here -->
-    <action id="FirstAction" class="FirstAction" text="java文件转typescript" description="右键菜单">
+    <action id="FirstAction" class="FirstAction" text="j-bean 2 ts-bean" description="j-bean to ts-bean">
       <add-to-group group-id="ProjectViewPopupMenu" anchor="first"/>
-      <keyboard-shortcut keymap="$default" first-keystroke="shift ctrl alt D"/>
+      <keyboard-shortcut keymap="$default" first-keystroke="shift ctrl alt T"/>
     </action>
   </actions>
 
