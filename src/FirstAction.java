@@ -188,104 +188,16 @@ public class FirstAction extends AnAction {
                 // member是字段
                 if(member instanceof FieldDeclaration){
                     FieldDeclaration field = (FieldDeclaration)member;
-                    // 注释
-                    JavadocComment javaDoc = field.getJavaDoc();
-                    if (javaDoc != null){
-                        typeScriptFileContent.append("    "+javaDoc.toString());
-                    }
-                    // 字段权限
-                    int modifiers = field.getModifiers();
-                    if (modifiers == 1){
-                        typeScriptFileContent.append("    public ");
-                    }else if(modifiers == 2){
-                        typeScriptFileContent.append("    private ");
-                    }else if(modifiers == 4){
-                        typeScriptFileContent.append("    protected ");
-                    }else{
-                        typeScriptFileContent.append("    ");
-                    }
-                    // 字段名称
-                    List<VariableDeclarator> variables = field.getVariables();
-                    VariableDeclarator variable = variables.get(0);
-                    String name = variable.getId().getName();
-                    typeScriptFileContent.append(name + ": ");
-                    // 字段类型
-                    ReferenceType type = (ReferenceType)field.getType();
-                    ClassOrInterfaceType classOrInterfaceType = (ClassOrInterfaceType)type.getType();
-                    // 获得类型的名称 String还是Inter之类的
-                    String typeName = classOrInterfaceType.getName();
-                    int arrayCount = type.getArrayCount();
-                    // arrayCount == 1 是数组[]
-                    if (arrayCount == 1){
-
-                        typeScriptFileContent.append("Array<"+typeName+">;\n");
-                    }else if(arrayCount == 0){
-                        // 可能是List，也是能是基础数据类型
-                        if("List".equals(typeName)){
-                            String string = classOrInterfaceType.toString();
-                            String replace = string.replace("List<", "Array<");
-                            typeScriptFileContent.append(replace+";\n");
-                        }else{
-                            // 基础数据类型
-                            String typeScriptDataType = Util.getTypeScriptDataType(typeName);
-                            typeScriptFileContent.append(typeScriptDataType+";\n");
-                        }
-                    }
-
+                    String templateFromField = getTemplateFromField(field);
+                    typeScriptFileContent.append(templateFromField);
 
                 }else if( member instanceof MethodDeclaration){
+
+
                     // member是方法
                     MethodDeclaration method = (MethodDeclaration)member;
-                    // 注释
-                    JavadocComment javaDoc = method.getJavaDoc();
-                    if (javaDoc != null){
-                        typeScriptFileContent.append("    "+javaDoc.toString());
-                    }
-                    // 字段权限
-                    int modifiers = method.getModifiers();
-                    if(modifiers == 0){
-                        // 默认的
-                        typeScriptFileContent.append("    ");
-                    } else  if (modifiers == 1){
-                        typeScriptFileContent.append("public ");
-                    }else if(modifiers == 2){
-                        typeScriptFileContent.append("private ");
-                    }
-                    // 方法名
-                    String name = method.getName();
-                    typeScriptFileContent.append(name+" ");
-                    // 获取参数
-                    List<Parameter> parameters = method.getParameters();
-                    if (parameters == null ){
-                        typeScriptFileContent.append("(): ");
-
-                    }else{
-                        List<String> parametersList = new LinkedList<>();
-                        parameters.forEach(parameter -> {
-                            String parameterType = Util.getReturnType(parameter.getType());
-                            String parameterName = parameter.getId().getName();
-                            parametersList.add(parameterName + ": "+parameterType);
-                        });
-                        String parametersJoin = String.join(", ", parametersList);
-                        typeScriptFileContent.append("("+parametersJoin+"): ");
-                    }
-
-                    // 方法的放回类型
-                    Type type = method.getType();
-                    if(type instanceof VoidType){
-                        typeScriptFileContent.append("void");
-                    }else{
-                        String returnType = Util.getReturnType(type);
-                        typeScriptFileContent.append(returnType);
-                    }
-
-                    // 方法体
-                    BlockStmt body = method.getBody();
-                    if(body != null){
-                        String methodBNodyString = body.toString();
-                        typeScriptFileContent.append(methodBNodyString + "\n");
-                    }
-
+                    String templateFromMethod = getTemplateFromMethod(method);
+                    typeScriptFileContent.append(templateFromMethod);
                 }
             });
 
@@ -304,7 +216,120 @@ public class FirstAction extends AnAction {
         }
 
     }
+    /**
+     * 从字段中获取ts内容
+     * @param field
+     * @return
+     */
+    public static String getTemplateFromField(FieldDeclaration field){
+        StringBuilder fieldTemplate = new StringBuilder();
+        // 注释
+        JavadocComment javaDoc = field.getJavaDoc();
+        if (javaDoc != null){
+            fieldTemplate.append("    "+javaDoc.toString());
+        }
+        // 字段权限
+        int modifiers = field.getModifiers();
+        if (modifiers == 1){
+            fieldTemplate.append("    public ");
+        }else if(modifiers == 2){
+            fieldTemplate.append("    private ");
+        }else if(modifiers == 4){
+            fieldTemplate.append("    protected ");
+        }else{
+            fieldTemplate.append("    ");
+        }
+        // 字段名称
+        List<VariableDeclarator> variables = field.getVariables();
+        VariableDeclarator variable = variables.get(0);
+        String name = variable.getId().getName();
+        fieldTemplate.append(name + ": ");
+        // 字段类型
+        ReferenceType type = (ReferenceType)field.getType();
+        ClassOrInterfaceType classOrInterfaceType = (ClassOrInterfaceType)type.getType();
+        // 获得类型的名称 String还是Inter之类的
+        String typeName = classOrInterfaceType.getName();
+        int arrayCount = type.getArrayCount();
+        // arrayCount == 1 是数组[]
+        if (arrayCount == 1){
 
+            fieldTemplate.append("Array<"+typeName+">;\n");
+        }else if(arrayCount == 0){
+            // 可能是List，也是能是基础数据类型
+            if("List".equals(typeName)){
+                String string = classOrInterfaceType.toString();
+                String replace = string.replace("List<", "Array<");
+                fieldTemplate.append(replace+";\n");
+            }else{
+                // 基础数据类型
+                String typeScriptDataType = Util.getTypeScriptDataType(typeName);
+                fieldTemplate.append(typeScriptDataType+";\n");
+            }
+        }
+        return fieldTemplate.toString();
+    }
+
+
+    /**
+     * 从方法中获取ts内容
+     * @param method
+     * @return
+     */
+    public static String getTemplateFromMethod(MethodDeclaration method){
+        StringBuilder methodTemplate = new StringBuilder();
+        // 注释
+        JavadocComment javaDoc = method.getJavaDoc();
+        if (javaDoc != null){
+            methodTemplate.append("    "+javaDoc.toString());
+        }
+        // 字段权限
+        int modifiers = method.getModifiers();
+        if(modifiers == 0){
+            // 默认的
+            methodTemplate.append("    ");
+        } else  if (modifiers == 1){
+            methodTemplate.append("public ");
+        }else if(modifiers == 2){
+            methodTemplate.append("private ");
+        }
+        // 方法名
+        String name = method.getName();
+        methodTemplate.append(name+" ");
+        // 获取参数
+        List<Parameter> parameters = method.getParameters();
+        if (parameters == null ){
+            methodTemplate.append("(): ");
+
+        }else{
+            List<String> parametersList = new LinkedList<>();
+            parameters.forEach(parameter -> {
+                String parameterType = Util.getReturnType(parameter.getType());
+                String parameterName = parameter.getId().getName();
+                parametersList.add(parameterName + ": "+parameterType);
+            });
+            String parametersJoin = String.join(", ", parametersList);
+            methodTemplate.append("("+parametersJoin+"): ");
+        }
+
+        // 方法的放回类型
+        Type type = method.getType();
+        if(type instanceof VoidType){
+            methodTemplate.append("void");
+        }else{
+            String returnType = Util.getReturnType(type);
+            methodTemplate.append(returnType);
+        }
+
+        // 方法体
+        BlockStmt body = method.getBody();
+        if(body != null){
+            String methodBNodyString = body.toString();
+            methodTemplate.append(methodBNodyString + "\n");
+        }
+        return methodTemplate.toString();
+
+
+    }
 
     public static void main(String[] args) throws IOException, ParseException {
         String javaFilePath = "E:/diandaxia/common/src/main/java/com/diandaxia/common/sdk/demo/Trade.java";

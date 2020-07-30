@@ -1,7 +1,7 @@
 <idea-plugin>
   <id>org.freeone.2ts4j</id>
   <name>j-bean to ts-bean</name>
-  <version>0.0.1</version>
+  <version>0.0.2</version>
   <vendor email="fackone@qq.com" url=""></vendor>
 
   <description><![CDATA[
