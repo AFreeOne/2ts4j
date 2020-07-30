@@ -32,10 +32,7 @@ import java.util.*;
 
 public class FirstAction extends AnAction {
 
-    static List<String> typesToNumber = Arrays.asList("int", "Integer", "byte", "Byte", "short", "Short", "long", "Long", "float", "Float", "double", "Double");
-    static List<String> typesToString = Arrays.asList("String");
-    static List<String> typesToBoolean = Arrays.asList("boolean", "Boolean");
-    static List<String> typesToAny = Arrays.asList("Object");
+
 
 
     /**
@@ -46,12 +43,9 @@ public class FirstAction extends AnAction {
     @Override
     public void actionPerformed(AnActionEvent event) {
 
-        ObjectMapper objectMapper = new ObjectMapper();
 
         // TODO: insert action logic here
-        Project project = event.getData(PlatformDataKeys.PROJECT);
-        DataContext dataContext = event.getDataContext();
-        String fileExtension = getFileExtension(dataContext);
+
         System.err.println("-----------------------------------");
 
         VirtualFile data = event.getData(PlatformDataKeys.VIRTUAL_FILE);
@@ -61,7 +55,6 @@ public class FirstAction extends AnAction {
             FileChooserDescriptor singleFolderDescriptor = FileChooserDescriptorFactory.createSingleFolderDescriptor();
             singleFolderDescriptor.setTitle("请选择转换之后的存放路径");
             VirtualFile newFileChooser =   FileChooser.chooseFile(singleFolderDescriptor, null,null);
-
             String savePath = "";
             if (null == newFileChooser){
                 Messages.showErrorDialog("请选择转换之后的文件夹", "错误");
@@ -69,10 +62,8 @@ public class FirstAction extends AnAction {
             }else{
                 savePath = newFileChooser.getPath();
             }
-
             String path = data.getPath();
-
-            List<String> filePaths = getAllJavaFile(path, true);
+            List<String> filePaths = Util.getAllJavaFile(path, true);
             for (String filePath : filePaths) {
                 filePath = filePath.replace("\\", "/");
                 String temSavePath = filePath.replace(path, savePath);
@@ -87,11 +78,6 @@ public class FirstAction extends AnAction {
                     javaFileToTypescriptFile(filePath,savePath+replace.substring(0,replace.lastIndexOf("/")));
                 }
             }
-
-
-
-
-            // TODO
 
 
         }else if("java".equals(data.getExtension())){
@@ -109,8 +95,6 @@ public class FirstAction extends AnAction {
             }else{
                 savePath = newFileChooser.getPath();
             }
-            String nameWithoutExtension = data.getNameWithoutExtension();
-            String name = data.getName();
 
             String path = data.getPath();
             System.err.println(1);
@@ -122,56 +106,6 @@ public class FirstAction extends AnAction {
 
     }
 
-
-    public static String getFileExtension(DataContext dataContext) {
-        VirtualFile data = dataContext.getData(PlatformDataKeys.VIRTUAL_FILE);
-        return data == null ? null : data.getExtension();
-    }
-
-    /**
-     * 设置编译之后的路径,这个是java原生窗口选择路径
-     * @return
-     */
-    @Deprecated
-    private String getSavePath(){
-
-        JFileChooser fileChooser = new JFileChooser();
-        FileSystemView fileSystemView = FileSystemView.getFileSystemView();
-        //桌面路径
-        File homeDirectory = fileSystemView.getHomeDirectory();
-        fileChooser.setCurrentDirectory(homeDirectory);
-        fileChooser.setDialogTitle("请选择编译之后的文件夹");
-        fileChooser.setApproveButtonText("确定");
-        fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-        int returnVal = fileChooser.showOpenDialog(fileChooser);
-        if(returnVal == JFileChooser.APPROVE_OPTION){
-            //这个就是你选择的文件夹的路径
-            String savePath  = fileChooser.getSelectedFile().getAbsolutePath();
-            System.out.println("absolutePath");
-            System.out.println(savePath);
-            return savePath;
-        }else{
-            return null;
-        }
-    }
-
-    /**
-     * idea窗口选择路径
-     * @return
-     */
-    private String chooseFolder(){
-
-        FileChooserDescriptor singleFolderDescriptor = FileChooserDescriptorFactory.createSingleFolderDescriptor();
-        singleFolderDescriptor.setTitle("请选择转换之后的存放路径");
-        VirtualFile newFileChooser =   FileChooser.chooseFile(singleFolderDescriptor, null,null);
-
-        if (null == newFileChooser){
-            return null;
-        }else{
-
-            return newFileChooser.getPath();
-        }
-    }
 
     /**
      * java文件转typescrite文件
@@ -232,7 +166,7 @@ public class FirstAction extends AnAction {
             // 临时的成员，用于查找属性，用户辨认是否在当前文件
             List<BodyDeclaration> temMembers = javaClass.getMembers();
             // 获取members中所有的java类型
-            Set<String> javaTypeInMembers = getAllFieldJavaTypeInMembers(temMembers);
+            Set<String> javaTypeInMembers = Util.getAllFieldJavaTypeInMembers(temMembers);
             // 类在当前路径下，java不需要引入，但是ts需要引入
             javaTypeInMembers.forEach(javaTypeName ->{
                 if (javaClassesInCurrentFolder.contains(javaTypeName)){
@@ -293,7 +227,7 @@ public class FirstAction extends AnAction {
                             typeScriptFileContent.append(replace+";\n");
                         }else{
                             // 基础数据类型
-                            String typeScriptDataType = getTypeScriptDataType(typeName);
+                            String typeScriptDataType = Util.getTypeScriptDataType(typeName);
                             typeScriptFileContent.append(typeScriptDataType+";\n");
                         }
                     }
@@ -328,7 +262,7 @@ public class FirstAction extends AnAction {
                     }else{
                         List<String> parametersList = new LinkedList<>();
                         parameters.forEach(parameter -> {
-                            String parameterType = getReturnType(parameter.getType());
+                            String parameterType = Util.getReturnType(parameter.getType());
                             String parameterName = parameter.getId().getName();
                             parametersList.add(parameterName + ": "+parameterType);
                         });
@@ -341,7 +275,7 @@ public class FirstAction extends AnAction {
                     if(type instanceof VoidType){
                         typeScriptFileContent.append("void");
                     }else{
-                        String returnType = getReturnType(type);
+                        String returnType = Util.getReturnType(type);
                         typeScriptFileContent.append(returnType);
                     }
 
@@ -372,196 +306,12 @@ public class FirstAction extends AnAction {
     }
 
 
-    private void compilerJavaFile(String javaClassName, String javaFilePath,String savePath){
-        try {
-
-            JavaCompiler javac = ToolProvider.getSystemJavaCompiler();
-
-            String[] order = {"-encoding", "UTF-8",javaFilePath};
-            int compilationResult = javac.run(null, null, null, order);
-            if  (compilationResult != 0){
-                throw new IllegalArgumentException("编译失败");
-            }else{
-                System.err.println("编译成功");
-            }
-
-            String classFilePath = javaFilePath.subSequence(0, javaFilePath.length() - 4).toString()+"class";
-            DataInputStream dataInputStream = new DataInputStream(new FileInputStream(classFilePath));
-            ClassFile classFile = new ClassFile(dataInputStream);
-            List fields = classFile.getFields();
-            fields.forEach(field -> {
-                System.err.println(field);
-            });
-        }  catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-
-
-
     public static void main(String[] args) throws IOException, ParseException {
-
-
-
         String javaFilePath = "E:/diandaxia/common/src/main/java/com/diandaxia/common/sdk/demo/Trade.java";
         String savePath = "D:/lqq/test";
         javaFileToTypescriptFile(javaFilePath, savePath);
 
     }
 
-    /**
-     * 获取java 数据类型，转ts数据类型
-     * @param type
-     * @return
-     */
-    public static String getTypeScriptDataType(String type){
-        if (typesToString.indexOf(type) != -1){
-            return "string";
-        }else if (typesToNumber.indexOf(type) != -1){
-            return "number";
-        }else if(typesToBoolean.indexOf(type) != -1){
-            return "boolean";
-        }else if (typesToAny.indexOf(type) != -1){
-            return "any";
-        }else{
-            return type;
-        }
-    }
-
-    /**
-     * 获取返回的类型
-     * @param type
-     */
-    public static String getReturnType(Type type){
-        String returnType = "";
-
-        ReferenceType referenceType =  (ReferenceType) type;
-
-
-        ClassOrInterfaceType classOrInterfaceType = (ClassOrInterfaceType)referenceType.getType();
-        int arrayCount = referenceType.getArrayCount();
-        if(arrayCount == 1){
-            // 数组
-
-            String name = classOrInterfaceType.getName();
-            String typeScriptDataType = getTypeScriptDataType(name);
-            returnType = "Array<"+typeScriptDataType+">";
-        }else if(arrayCount == 0){
-            List<Type> typeArgs = classOrInterfaceType.getTypeArgs();
-            if (typeArgs == null){
-                // 基础数据类型
-                String typeScriptDataType = getTypeScriptDataType(classOrInterfaceType.getName());
-                returnType = typeScriptDataType;
-            }else{
-                // list 之类
-
-                String childReturnType = getReturnType(typeArgs.get(0));
-                returnType = "Array<"+childReturnType+">";
-            }
-
-
-        }else{
-            returnType = "any";
-        }
-
-        return returnType;
-    }
-
-
-    /**
-     * 获取路径下的所有文件/文件夹
-     * @param directoryPath 需要遍历的文件夹路径
-     * @param isAddDirectory 是否将子文件夹的路径也添加到list集合中
-     * @return
-     */
-    public static List<String> getAllFile(String directoryPath,boolean isAddDirectory) {
-        List<String> list = new ArrayList<>();
-        File baseFile = new File(directoryPath);
-        if (baseFile.isFile() || !baseFile.exists()) {
-            return list;
-        }
-        File[] files = baseFile.listFiles();
-        for (File file : files) {
-            if (file.isDirectory()) {
-                if(isAddDirectory){
-                    list.add(file.getAbsolutePath());
-                }
-                list.addAll(getAllFile(file.getAbsolutePath(),isAddDirectory));
-            } else {
-                list.add(file.getAbsolutePath());
-            }
-        }
-        return list;
-    }
-
-    public static List<String> getAllJavaFile(String directoryPath,boolean isAddDirectory) {
-        List<String> list = new ArrayList<>();
-        File baseFile = new File(directoryPath);
-        if (baseFile.isFile() || !baseFile.exists()) {
-            return list;
-        }
-        File[] files = baseFile.listFiles();
-        for (File file : files) {
-            if (file.isDirectory()) {
-                if(isAddDirectory){
-                    list.add(file.getAbsolutePath());
-                }
-                list.addAll(getAllJavaFile(file.getAbsolutePath(),isAddDirectory));
-            } else {
-                String absolutePath = file.getAbsolutePath();
-                if(absolutePath.endsWith(".java")){
-                    list.add(file.getAbsolutePath());
-                }
-
-            }
-        }
-        return list;
-    }
-
-    /**
-     * 获取members中所有的java类型
-     * @param temMembers
-     */
-    public static Set<String> getAllFieldJavaTypeInMembers( List<BodyDeclaration> temMembers){
-        Set<String> javaTypeNameSet = new HashSet<>();
-        if (temMembers != null){
-            temMembers.forEach(temMember ->{
-                if (temMember instanceof FieldDeclaration){
-                    // 是字段
-                    // 字段的类型
-                    Type type = ((FieldDeclaration) temMember).getType();
-                    Set<String> javaTypeNameSet1 = getJavaTypeNameSet(type);
-                    javaTypeNameSet.addAll(javaTypeNameSet1);
-
-                }
-            });
-        }
-        return javaTypeNameSet;
-    }
-
-    /**
-     * 获取type中所有引用的java类型
-     * @param type
-     * @return
-     */
-    public static Set<String> getJavaTypeNameSet(Type type){
-
-        Set<String> javaTypeNameSet = new HashSet<>();
-        ReferenceType referenceType = (ReferenceType)type;
-        ClassOrInterfaceType classOrInterfaceType =  (ClassOrInterfaceType)referenceType.getType();
-        List<Type> typeArgs = classOrInterfaceType.getTypeArgs();
-
-        String javaTypeName = classOrInterfaceType.getName();
-        javaTypeNameSet.add(javaTypeName);
-        if (typeArgs != null){
-            typeArgs.forEach(type1 -> {
-
-                Set<String> javaTypeNameList1 = getJavaTypeNameSet(type1);
-                javaTypeNameSet.addAll(javaTypeNameList1);
-            });
-        }
-        return javaTypeNameSet;
-    }
 
 }
