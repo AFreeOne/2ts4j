@@ -15,8 +15,12 @@ import japa.parser.ast.ImportDeclaration;
 import japa.parser.ast.PackageDeclaration;
 import japa.parser.ast.TypeParameter;
 import japa.parser.ast.body.*;
+import japa.parser.ast.expr.Expression;
+import japa.parser.ast.expr.FieldAccessExpr;
 import japa.parser.ast.expr.NameExpr;
 import japa.parser.ast.stmt.BlockStmt;
+import japa.parser.ast.stmt.ReturnStmt;
+import japa.parser.ast.stmt.Statement;
 import japa.parser.ast.type.ClassOrInterfaceType;
 import japa.parser.ast.type.ReferenceType;
 import japa.parser.ast.type.Type;
@@ -175,6 +179,9 @@ public class FirstAction extends AnAction {
                 }
             });
 
+            // 先获取所有的字段
+            Set<String> allField = Util.getAllField(temMembers);
+
             // 注释
             JavadocComment classJavaDoc = javaClass.getJavaDoc();
             if (classJavaDoc != null){
@@ -237,6 +244,7 @@ public class FirstAction extends AnAction {
 
 
             typeScriptFileContent.append("}\n");
+            typeScriptFileContent.append("export = "+javaClassName+";");
 
            String typeScriptFileSavePath  = savePath  + "/"+javaClassName+".ts";
             BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(typeScriptFileSavePath,true),"utf-8"));
@@ -362,6 +370,23 @@ public class FirstAction extends AnAction {
             BlockStmt body = method.getBody();
             if(body != null){
                 String methodBNodyString = body.toString();
+                List<Statement> stmts = body.getStmts();
+                if(stmts != null){
+                    stmts.forEach(stmt->{
+                        if(stmt instanceof ReturnStmt){
+                            ReturnStmt returnStmt = (ReturnStmt)stmt;
+                            Expression expr = returnStmt.getExpr();
+                            if(expr instanceof  NameExpr){
+                                NameExpr nameExpr = (NameExpr)expr;
+                                String nameExprName = nameExpr.getName();
+                                methodBNodyString.replace("return "+nameExprName,"return this."+nameExprName);
+                            }
+
+                        }
+                    });
+                }
+
+
                 methodTemplate.append(methodBNodyString + "\n");
             }
             return methodTemplate.toString();
@@ -373,8 +398,8 @@ public class FirstAction extends AnAction {
 
     public static void main(String[] args) throws IOException, ParseException {
 //        String javaFilePath = "E:/diandaxia/common/src/main/java/com/diandaxia/common/sdk/taobao/TaobaoTradesSoldGetRequest.java";
-//        String javaFilePath = "E:/diandaxia/common/src/main/java/com/diandaxia/common/sdk/DdxBaseResponse.java";
-        String javaFilePath = "E:/diandaxia/common/src/main/java/com/diandaxia/common/sdk/DdxBaseRequest.java";
+        String javaFilePath = "E:/diandaxia/common/src/main/java/com/diandaxia/common/sdk/DdxBaseResponse.java";
+//        String javaFilePath = "E:/diandaxia/common/src/main/java/com/diandaxia/common/sdk/DdxBaseRequest.java";
         String savePath = "D:/lqq/test";
         javaFileToTypescriptFile(javaFilePath, savePath);
 

@@ -1,5 +1,6 @@
 import japa.parser.ast.body.BodyDeclaration;
 import japa.parser.ast.body.FieldDeclaration;
+import japa.parser.ast.body.VariableDeclarator;
 import japa.parser.ast.type.ClassOrInterfaceType;
 import japa.parser.ast.type.ReferenceType;
 import japa.parser.ast.type.Type;
@@ -153,5 +154,33 @@ public class Util {
         return returnType;
     }
 
+    /**
+     * 获取所有的字段
+     * @param temMembers
+     * @return
+     */
+    public static Set<String> getAllField(List<BodyDeclaration> temMembers){
+        // TODO getAllField
+        Set<String> fieldSet = new HashSet<>();
+        if (temMembers != null){
+            temMembers.forEach(temMember ->{
+                if (temMember instanceof FieldDeclaration){
+                    // 是字段
+                    // 字段的类型
+                    Type type = ((FieldDeclaration) temMember).getType();
+                    List<VariableDeclarator> variables = ((FieldDeclaration) temMember).getVariables();
+                    if(variables != null){
+                        String fieldName = variables.get(0).getId().getName();
+                        fieldSet.add(fieldName);
+                    }
+
+
+                }
+            });
+        }
+        return fieldSet;
+
+
+    }
 
 }
