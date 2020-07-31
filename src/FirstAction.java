@@ -66,6 +66,19 @@ public class FirstAction extends AnAction {
             }
             String path = data.getPath();
             List<String> filePaths = Util.getAllJavaFile(path, true);
+            Util.fileRelativeLevel.clear();
+            for (String str:filePaths) {
+
+                str = str.replace("\\","/");
+                String fileRelativePath = (str.replace(path, ""));
+                int i = Util.countMatches(fileRelativePath, "/");
+                // 文件的层级
+                if( fileRelativePath.endsWith(".java")){
+                     Util.fileRelativeLevel.put(fileRelativePath,i);
+                }
+            }
+
+
             for (String filePath : filePaths) {
                 filePath = filePath.replace("\\", "/");
                 String temSavePath = filePath.replace(path, savePath);
@@ -77,7 +90,7 @@ public class FirstAction extends AnAction {
                     // 截取多出来的那一段路径
                     String replace = filePath.replace(path, "");
                     //savePath 保存路径加上相对路径
-                    javaFileToTypescriptFile(filePath,savePath+replace.substring(0,replace.lastIndexOf("/")));
+                    javaFileToTypescriptFile(filePath,savePath+replace.substring(0,replace.lastIndexOf("/")),path);
                 }
             }
 
@@ -100,7 +113,7 @@ public class FirstAction extends AnAction {
 
             String path = data.getPath();
             System.err.println(1);
-            javaFileToTypescriptFile(path,savePath);
+            javaFileToTypescriptFile(path,savePath,null);
 
         }else {
             Messages.showErrorDialog("选java文件或文件夹", "异常操作");
@@ -113,8 +126,9 @@ public class FirstAction extends AnAction {
      * java文件转typescrite文件
      * @param javaFilePath java文件的路径
      * @param savePath  保存路径
+     * @param parentPath 父路径，传入此参数说明是将文件夹内的java文件全部转换成ts文件
      */
-    private static void javaFileToTypescriptFile(String javaFilePath,String savePath){
+    private static void javaFileToTypescriptFile(String javaFilePath,String savePath,String parentPath ){
         try {
             javaFilePath.replace("file://", "");
             File javaFile = new File(javaFilePath);
@@ -124,9 +138,11 @@ public class FirstAction extends AnAction {
             File[] files = file.listFiles();
             // 当前文件夹下的所有java类
             Set<String> javaClassesInCurrentFolder = new HashSet<>();
-            for (int i = 0; i < files.length; i++) {
-                if(files[i].isFile() && files[i].getName().endsWith(".java")){
-                    javaClassesInCurrentFolder.add(files[i].getName().replace(".java", ""));
+            if (files != null){
+                for (int i = 0; i < files.length; i++) {
+                    if(files[i].isFile() && files[i].getName().endsWith(".java")){
+                        javaClassesInCurrentFolder.add(files[i].getName().replace(".java", ""));
+                    }
                 }
             }
 
@@ -162,18 +178,43 @@ public class FirstAction extends AnAction {
                 }
             }
 
+
+
             List<TypeDeclaration> types = parse.getTypes();
             // 获取第一个class
             ClassOrInterfaceDeclaration javaClass = (ClassOrInterfaceDeclaration)types.get(0);
             // 临时的成员，用于查找属性，用户辨认是否在当前文件
             List<BodyDeclaration> temMembers = javaClass.getMembers();
-            // 获取members中所有的java类型
+            // 获取members中所有的java类型,判断并在import时导入相关类
             Set<String> javaTypeInMembers = Util.getAllFieldJavaTypeInMembers(temMembers);
+            //  获取继承中的java类型
+            Set<String> javaTypeInExtends = Util.getJavaTypeInExtends(javaClass.getExtends());
+            // 添加其中一起判断和导入
+            javaTypeInMembers.addAll(javaTypeInExtends);
+            // TODO 获取泛型中的java类型
+            Set<String> javaTypeInTypeParameters = Util.getJavaTypeInTypeParameters(javaClass.getTypeParameters());
+            javaTypeInMembers.addAll(javaTypeInTypeParameters);
+            // 已经被引入的java class
+            List<String> javaClassHasImported = new ArrayList<>();
             // 类在当前路径下，java不需要引入，但是ts需要引入
+
             javaTypeInMembers.forEach(javaTypeName ->{
                 if (javaClassesInCurrentFolder.contains(javaTypeName)){
+                    javaClassHasImported.add(javaTypeName);
                     typeScriptFileContent.append("import "+ javaTypeName+" = require(\"./"+javaTypeName+"\");\n");
                 }
+            });
+            // 不同路径引入
+            javaTypeInMembers.forEach(javaTypeName ->{
+                if (javaClassHasImported.indexOf(javaTypeName) == -1){
+                    String importInDifferentFolder = Util.getImportInDifferentFolder(javaFilePath, javaTypeName);
+                    if(importInDifferentFolder != null){
+                        javaClassHasImported.add(javaTypeName);
+                        typeScriptFileContent.append(importInDifferentFolder);
+                    }
+                }
+
+
             });
 
             // 先获取所有的字段
@@ -236,8 +277,6 @@ public class FirstAction extends AnAction {
                     typeScriptFileContent.append(templateFromMethod);
                 }
             });
-
-
 
 
             typeScriptFileContent.append("}\n");
@@ -402,10 +441,7 @@ public class FirstAction extends AnAction {
                         }
                     }
 
-
-
                 }
-
 
                 methodTemplate.append(methodBNodyString + "\n");
             }
@@ -417,11 +453,14 @@ public class FirstAction extends AnAction {
     }
 
     public static void main(String[] args) throws IOException, ParseException {
-//        String javaFilePath = "E:/diandaxia/common/src/main/java/com/diandaxia/common/sdk/taobao/TaobaoTradesSoldGetRequest.java";
-        String javaFilePath = "E:/diandaxia/common/src/main/java/com/diandaxia/common/sdk/demo/Order.java";
+
+//        String javaFilePath = "E:/diandaxia/common/src/main/java/com/diandaxia/common/sdk/taobao/TaobaoTradesSoldGetResponse.java";
+//            String javaFilePath = "E:/diandaxia/common/src/main/java/com/diandaxia/common/sdk/taobao/TaobaoTradesSoldGetRequest.java";
+//        String javaFilePath = "E:/diandaxia/common/src/main/java/com/diandaxia/common/sdk/demo/Order.java";
 //        String javaFilePath = "E:/diandaxia/common/src/main/java/com/diandaxia/common/sdk/DdxBaseRequest.java";
+        String javaFilePath = "E:/diandaxia/common/src/main/java/com/diandaxia/common/sdk/jingdong/bean/ApiResult.java";
         String savePath = "D:/lqq/test";
-        javaFileToTypescriptFile(javaFilePath, savePath);
+        javaFileToTypescriptFile(javaFilePath, savePath,null);
 
     }
 
