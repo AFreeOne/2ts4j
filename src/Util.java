@@ -216,7 +216,8 @@ public class Util {
                 // list 之类
                 String childReturnType = getReturnType(typeArgs.get(0));
                 if ("Class".equals(classOrInterfaceType.getName())) {
-                    returnType = getTypeScriptDataType(childReturnType + "|Function ");
+//                    returnType = getTypeScriptDataType(childReturnType + "|Function ");
+                    returnType = getTypeScriptDataType(childReturnType + "");
                 } else if("List".equals(classOrInterfaceType.getName())) {
                     returnType = "Array<" + childReturnType + ">";
                 }else if("Map".equals(classOrInterfaceType.getName())){

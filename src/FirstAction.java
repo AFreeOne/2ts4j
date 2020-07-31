@@ -15,10 +15,9 @@ import japa.parser.ast.ImportDeclaration;
 import japa.parser.ast.PackageDeclaration;
 import japa.parser.ast.TypeParameter;
 import japa.parser.ast.body.*;
-import japa.parser.ast.expr.Expression;
-import japa.parser.ast.expr.FieldAccessExpr;
-import japa.parser.ast.expr.NameExpr;
+import japa.parser.ast.expr.*;
 import japa.parser.ast.stmt.BlockStmt;
+import japa.parser.ast.stmt.ExpressionStmt;
 import japa.parser.ast.stmt.ReturnStmt;
 import japa.parser.ast.stmt.Statement;
 import japa.parser.ast.type.*;
@@ -112,7 +111,7 @@ public class FirstAction extends AnAction {
             }
 
             String path = data.getPath();
-            System.err.println(1);
+
             javaFileToTypescriptFile(path,savePath,null);
 
         }else {
@@ -180,9 +179,7 @@ public class FirstAction extends AnAction {
             // 获取泛型中的java类型
             Set<String> javaTypeInTypeParameters = Util.getJavaTypeInTypeParameters(javaClass.getTypeParameters());
             javaTypeInMembers.addAll(javaTypeInTypeParameters);
-            if(javaClass.getName().equals("TradeFullinfoGetResponse")){
-                System.err.println(1);
-            }
+
 
             final String tempPackageString = packageString;
             // 不同路径引入
@@ -195,6 +192,8 @@ public class FirstAction extends AnAction {
                     }
                 }
             });
+
+
 
             // 先获取所有的字段
             Set<String> allField = Util.getAllField(temMembers);
@@ -241,6 +240,8 @@ public class FirstAction extends AnAction {
 
             List<BodyDeclaration> members = javaClass.getMembers();
 
+
+
             members.forEach(member -> {
                 // member是字段
                 if(member instanceof FieldDeclaration){
@@ -252,7 +253,7 @@ public class FirstAction extends AnAction {
 
                     // member是方法
                     MethodDeclaration method = (MethodDeclaration)member;
-                    String templateFromMethod = getTemplateFromMethod(method);
+                    String templateFromMethod = getTemplateFromMethod(method,allField);
                     typeScriptFileContent.append(templateFromMethod);
                 }
             });
@@ -302,9 +303,7 @@ public class FirstAction extends AnAction {
         // 字段类型
         String typeName = "";
         int arrayCount = 0;
-        if(name.equals("bizTypes")){
-            System.err.println(1);
-        }
+
 
         ClassOrInterfaceType classOrInterfaceType = null;
 
@@ -368,7 +367,7 @@ public class FirstAction extends AnAction {
      * @param method
      * @return
      */
-    public static String getTemplateFromMethod(MethodDeclaration method){
+    public static String getTemplateFromMethod(MethodDeclaration method, Set<String> allFields){
         StringBuilder methodTemplate = new StringBuilder();
         // 注释
         JavadocComment javaDoc = method.getJavaDoc();
@@ -392,6 +391,7 @@ public class FirstAction extends AnAction {
         methodTemplate.append(name+" ");
         // 获取参数
         List<Parameter> parameters = method.getParameters();
+        List<String> allParameterName = new LinkedList<>();
         if (parameters == null ){
             methodTemplate.append("(): ");
 
@@ -400,20 +400,20 @@ public class FirstAction extends AnAction {
             parameters.forEach(parameter -> {
                 String parameterType = Util.getReturnType(parameter.getType());
                 String parameterName = parameter.getId().getName();
+                allParameterName.add(parameterName);
                 parametersList.add(parameterName + ": "+parameterType);
             });
             String parametersJoin = String.join(", ", parametersList);
             methodTemplate.append("("+parametersJoin+"): ");
         }
 
-
-
         // 方法的返回类型
         Type type = method.getType();
+        String returnType = "";
         if(type instanceof VoidType){
             methodTemplate.append("void");
         }else{
-            String returnType = Util.getReturnType(type);
+            returnType = Util.getReturnType(type);
             methodTemplate.append(returnType);
         }
         // abstract抽象方法没方法体
@@ -421,13 +421,14 @@ public class FirstAction extends AnAction {
             // 给抽象方法添加结束符
             methodTemplate.append(";\n ");
         }else{
+
+
             // 方法体
             BlockStmt body = method.getBody();
             if(body != null){
                 String methodBNodyString = body.toString();
                 List<Statement> stmts = body.getStmts();
                 if(stmts != null){
-
                     for (Statement stmt : stmts ) {
                         if(stmt instanceof ReturnStmt){
                             ReturnStmt returnStmt = (ReturnStmt)stmt;
@@ -436,10 +437,40 @@ public class FirstAction extends AnAction {
                                 NameExpr nameExpr = (NameExpr)expr;
                                 String nameExprName = nameExpr.getName();
                                 methodBNodyString = methodBNodyString.replace("return "+nameExprName,"return this."+nameExprName);
+                            }else if(expr instanceof ClassExpr){
+                                methodBNodyString = methodBNodyString.replace(".class", ".prototype");
+                            }
+                        }else {
+                            if (stmts.size() == 1 && stmt instanceof ExpressionStmt){
+                                for (String fieldString : allFields) {
+                                    // 那么就是set方法
+                                    if((  "set" + fieldString.substring(0,1).toUpperCase() + fieldString.substring(1,fieldString.length()) ).equals(name)){
+
+                                        ExpressionStmt expressionStmt = (ExpressionStmt)stmt;
+                                        if(expressionStmt != null){
+                                            Expression expression = expressionStmt.getExpression();
+                                            // AssignExpr 指派| 赋值
+                                            if(expression  instanceof AssignExpr){
+                                                AssignExpr assignExpr = (AssignExpr) expression;
+                                                Expression target = assignExpr.getTarget();
+                                                if(target instanceof FieldAccessExpr){
+                                                    // 含有this.
+
+                                                } else if(target instanceof NameExpr){
+                                                    // 没有this 这种 情况一般是字段名和参数不一样，判断是不是真不一样
+                                                    String targetString = target.toString();
+                                                    if(allParameterName.indexOf(targetString) == -1 && allFields.contains(targetString)){  // 不在参数之中,却在字段之中
+                                                        methodBNodyString = methodBNodyString.replace(targetString,"this."+targetString);
+                                                    }
+                                                }
+
+                                            }
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
-
                 }
 
                 methodTemplate.append(methodBNodyString + "\n");
@@ -455,10 +486,10 @@ public class FirstAction extends AnAction {
 
 //        String javaFilePath = "E:/diandaxia/common/src/main/java/com/diandaxia/common/sdk/taobao/TaobaoTradesSoldGetResponse.java";
 //            String javaFilePath = "E:/diandaxia/common/src/main/java/com/diandaxia/common/sdk/taobao/TaobaoTradesSoldGetRequest.java";
-//        String javaFilePath = "E:/diandaxia/common/src/main/java/com/diandaxia/common/sdk/demo/Order.java";
+        String javaFilePath = "E:/diandaxia/common/src/main/java/com/diandaxia/common/sdk/demo/Order.java";
 //        String javaFilePath = "E:/diandaxia/common/src/main/java/com/diandaxia/common/sdk/DdxBaseRequest.java";
 //        String javaFilePath = "E:/diandaxia/common/src/main/java/com/diandaxia/common/sdk/jingdong/bean/ApiResult.java";
-        String javaFilePath = "E:/diandaxia/common/src/main/java/com/diandaxia/common/sdk/jingdong/bean/OrderSearchInfo.java";
+//        String javaFilePath = "E:/diandaxia/common/src/main/java/com/diandaxia/common/sdk/jingdong/bean/OrderSearchInfo.java";
 
         String savePath = "D:/lqq/test";
         javaFileToTypescriptFile(javaFilePath, savePath,null);
