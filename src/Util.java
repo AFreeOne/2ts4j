@@ -1,3 +1,4 @@
+import japa.parser.ast.ImportDeclaration;
 import japa.parser.ast.TypeParameter;
 import japa.parser.ast.body.BodyDeclaration;
 import japa.parser.ast.body.FieldDeclaration;
@@ -6,7 +7,7 @@ import japa.parser.ast.type.ClassOrInterfaceType;
 import japa.parser.ast.type.PrimitiveType;
 import japa.parser.ast.type.ReferenceType;
 import japa.parser.ast.type.Type;
-import org.apache.commons.lang3.CharSequenceUtils;
+
 
 import java.io.File;
 import java.util.*;
@@ -14,8 +15,8 @@ import java.util.*;
 public class Util {
 
     static Map<String,Integer> fileRelativeLevel = new LinkedHashMap<>();
-    static List<String> typesToNumber = Arrays.asList("int", "Integer", "byte", "Byte", "short", "Short", "long", "Long", "float", "Float", "double", "Double");
-    static List<String> typesToString = Arrays.asList("String");
+    static List<String> typesToNumber = Arrays.asList("int", "Integer", "byte", "Byte", "short", "Short", "long", "Long", "float", "Float", "double", "Double","BigDecimal");
+    static List<String> typesToString = Arrays.asList("String","StringBuilder","StringBuffer");
     static List<String> typesToBoolean = Arrays.asList("boolean", "Boolean");
     static List<String> typesToAny = Arrays.asList("Object");
 
@@ -264,7 +265,24 @@ public class Util {
 
     }
 
-    public static String  getImportInDifferentFolder(String currentJavaFielPath,String targetClassName){
+    public static String  getImportInDifferentFolder(String currentJavaFielPath,String targetClassName,String packageString,List<ImportDeclaration> imports){
+        // TODO 重置 有限考虑在import中
+//        if(imports.indexOf (packageString + "."+ targetClassName))
+        boolean inImport = false;
+        if (imports != null){
+            for (ImportDeclaration otherImport: imports) {
+                String otherImportString = otherImport.toString();
+                if(otherImportString.contains("."+targetClassName)){
+                    inImport = true;
+                    break;
+                }
+            }
+        }
+
+
+
+
+
         Set<String> keySet = fileRelativeLevel.keySet();
         for (String key: keySet) {
             boolean contains = currentJavaFielPath.contains(key);
@@ -272,13 +290,35 @@ public class Util {
                 // 当前java文件的层级
                 Integer currentJavaFieLevel = fileRelativeLevel.get(key);
                 for (String classFileKey: keySet) {
+                    // 存在多个文件名相同的情况下使用，由于一个文件夹不会存在同名文件，不用担心Key重复
+                    Map<Integer,String> levelAndFilePath = new LinkedHashMap<>();
+
                     if(classFileKey.contains("/"+targetClassName+".java")){
+
+                        // 不在import之中，却在文件夹中,层级相同，那么应该是在相同文件中
+                        if (!inImport){
+                            return "import "+ targetClassName+" = require(\"./"+targetClassName+"\");\n";
+                        }
                         // 需要引入的文件的层级
                         Integer targetClassLevel = fileRelativeLevel.get(classFileKey);
+                        levelAndFilePath.put(targetClassLevel, classFileKey);
                         if(currentJavaFieLevel.intValue() == targetClassLevel.intValue()){
-                            // 相同层级已经经过处理
-                            continue;
+                            // 不在import之中，却在文件夹中,层级相同，那么应该是在相同文件中
+
+                                // 在import中，却需要导入那么就是其他文件夹，只是层级一样
+                                StringBuilder returnString = new StringBuilder();
+                                returnString.append("import "+ targetClassName+" = require(\"");
+                                // 进入根目录
+                                for (int i = 0; i < currentJavaFieLevel.intValue() - 1 ; i++) {
+                                    returnString.append("../");
+                                }
+                                returnString.append(classFileKey.replace(".java", ""));
+                                returnString.append("\");\n");
+                                return returnString.toString().replace("//", "/");
+
+
                         }else if(currentJavaFieLevel.intValue() > targetClassLevel.intValue()){
+
                             StringBuilder returnString = new StringBuilder();
                             returnString.append("import "+ targetClassName+" = require(\"");
                             // 层级差距
@@ -288,8 +328,28 @@ public class Util {
                             }
                             returnString.append(targetClassName + "\");\n");
                             return returnString.toString();
+                        }else if(currentJavaFieLevel.intValue() < targetClassLevel.intValue()){
+                            StringBuilder returnString = new StringBuilder();
+                            returnString.append("import "+ targetClassName+" = require(\"");
+                            // 层级差距
+                            int value = targetClassLevel.intValue()- currentJavaFieLevel.intValue() ;
+                            for (int i = 0; i < value; i++) {
+                                returnString.append("../");
+                            }
+                            StringBuilder javaFilePath = new StringBuilder(classFileKey);
+                            javaFilePath.replace(javaFilePath.length()-5,javaFilePath.length(),"");
+                            returnString.append(javaFilePath.toString());
+                            returnString.append("\");\n");
+
+                            return returnString.toString().replace("//", "/");
                         }
                     }
+
+
+
+
+
+
 
                 }
             }

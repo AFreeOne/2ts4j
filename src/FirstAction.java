@@ -159,24 +159,10 @@ public class FirstAction extends AnAction {
                 }
             }
 
+            // 已经被引入的java class
+            List<String> javaClassHasImported = new ArrayList<>();
             // 一般import处理，处理的是该包下子包的类的import
             List<ImportDeclaration> imports = parse.getImports();
-            if(imports != null &&  imports.size() > 0){
-
-                for (int i = 0; i < imports.size(); i++) {
-                    ImportDeclaration importDeclaration = imports.get(i);
-                    NameExpr name = importDeclaration.getName();
-                    if(name != null){
-                        String importClassPath = name.toString();
-                        if (!"".equals(packageString) && importClassPath.startsWith(packageString)){
-                            String importClassName = name.getName();
-                            importClassPath = importClassPath.substring(packageString.length()+1,importClassPath.length());
-                            importClassPath = importClassPath.replace(".", "/");
-                            typeScriptFileContent.append("import "+ importClassName + " = require(\""+"./"+importClassPath+"\");\n");
-                        }
-                    }
-                }
-            }
 
 
 
@@ -191,35 +177,28 @@ public class FirstAction extends AnAction {
             Set<String> javaTypeInExtends = Util.getJavaTypeInExtends(javaClass.getExtends());
             // 添加其中一起判断和导入
             javaTypeInMembers.addAll(javaTypeInExtends);
-            // TODO 获取泛型中的java类型
+            // 获取泛型中的java类型
             Set<String> javaTypeInTypeParameters = Util.getJavaTypeInTypeParameters(javaClass.getTypeParameters());
             javaTypeInMembers.addAll(javaTypeInTypeParameters);
-            // 已经被引入的java class
-            List<String> javaClassHasImported = new ArrayList<>();
-            // 类在当前路径下，java不需要引入，但是ts需要引入
+            if(javaClass.getName().equals("TradeFullinfoGetResponse")){
+                System.err.println(1);
+            }
 
-            javaTypeInMembers.forEach(javaTypeName ->{
-                if (javaClassesInCurrentFolder.contains(javaTypeName)){
-                    javaClassHasImported.add(javaTypeName);
-                    typeScriptFileContent.append("import "+ javaTypeName+" = require(\"./"+javaTypeName+"\");\n");
-                }
-            });
+            final String tempPackageString = packageString;
             // 不同路径引入
             javaTypeInMembers.forEach(javaTypeName ->{
                 if (javaClassHasImported.indexOf(javaTypeName) == -1){
-                    String importInDifferentFolder = Util.getImportInDifferentFolder(javaFilePath, javaTypeName);
+                    String importInDifferentFolder = Util.getImportInDifferentFolder(javaFilePath, javaTypeName,  tempPackageString ,imports);
                     if(importInDifferentFolder != null){
                         javaClassHasImported.add(javaTypeName);
                         typeScriptFileContent.append(importInDifferentFolder);
                     }
                 }
-
-
             });
 
             // 先获取所有的字段
             Set<String> allField = Util.getAllField(temMembers);
-
+            typeScriptFileContent.append("\n");
             // 注释
             JavadocComment classJavaDoc = javaClass.getJavaDoc();
             if (classJavaDoc != null){
@@ -229,6 +208,7 @@ public class FirstAction extends AnAction {
             String javaClassName = javaClass.getName();
             int classModifiers = javaClass.getModifiers();
             // public :1  默认 0 ，private: 2, protected: 4 public abstract :1025 ,abstract = 1024
+
             if(classModifiers == 1){
                 // public 类什么都不放
                 typeScriptFileContent.append("");
@@ -322,6 +302,9 @@ public class FirstAction extends AnAction {
         // 字段类型
         String typeName = "";
         int arrayCount = 0;
+        if(name.equals("bizTypes")){
+            System.err.println(1);
+        }
 
         ClassOrInterfaceType classOrInterfaceType = null;
 
@@ -330,6 +313,7 @@ public class FirstAction extends AnAction {
             classOrInterfaceType = (ClassOrInterfaceType)type.getType();
             // 获得类型的名称 String还是Inter之类的
             typeName = classOrInterfaceType.getName();
+
             arrayCount = type.getArrayCount();
         }else{
             PrimitiveType primitiveType = (PrimitiveType) field.getType();
@@ -340,8 +324,7 @@ public class FirstAction extends AnAction {
 
         // arrayCount == 1 是数组[]
         if (arrayCount == 1){
-
-            fieldTemplate.append("Array<"+typeName+">;\n");
+            fieldTemplate.append("Array<"+Util.getTypeScriptDataType(typeName)+">;\n");
         }else if(arrayCount == 0){
             // 可能是List，也是能是基础数据类型
             if("List".equals(typeName)){
