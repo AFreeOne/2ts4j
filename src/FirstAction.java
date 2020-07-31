@@ -21,10 +21,7 @@ import japa.parser.ast.expr.NameExpr;
 import japa.parser.ast.stmt.BlockStmt;
 import japa.parser.ast.stmt.ReturnStmt;
 import japa.parser.ast.stmt.Statement;
-import japa.parser.ast.type.ClassOrInterfaceType;
-import japa.parser.ast.type.ReferenceType;
-import japa.parser.ast.type.Type;
-import japa.parser.ast.type.VoidType;
+import japa.parser.ast.type.*;
 import javassist.bytecode.ClassFile;
 
 
@@ -285,11 +282,24 @@ public class FirstAction extends AnAction {
         String name = variable.getId().getName();
         fieldTemplate.append(name + ": ");
         // 字段类型
-        ReferenceType type = (ReferenceType)field.getType();
-        ClassOrInterfaceType classOrInterfaceType = (ClassOrInterfaceType)type.getType();
-        // 获得类型的名称 String还是Inter之类的
-        String typeName = classOrInterfaceType.getName();
-        int arrayCount = type.getArrayCount();
+        String typeName = "";
+        int arrayCount = 0;
+
+        ClassOrInterfaceType classOrInterfaceType = null;
+
+        if (field.getType() instanceof ReferenceType){
+            ReferenceType type = (ReferenceType)field.getType();
+            classOrInterfaceType = (ClassOrInterfaceType)type.getType();
+            // 获得类型的名称 String还是Inter之类的
+            typeName = classOrInterfaceType.getName();
+            arrayCount = type.getArrayCount();
+        }else{
+            PrimitiveType primitiveType = (PrimitiveType) field.getType();
+            typeName = primitiveType.toString();
+//            arrayCount = primitiveType.ge
+        }
+
+
         // arrayCount == 1 是数组[]
         if (arrayCount == 1){
 
@@ -297,9 +307,16 @@ public class FirstAction extends AnAction {
         }else if(arrayCount == 0){
             // 可能是List，也是能是基础数据类型
             if("List".equals(typeName)){
-                String string = classOrInterfaceType.toString();
-                String replace = string.replace("List<", "Array<");
-                fieldTemplate.append(replace+";\n");
+                if (field.getType() instanceof ReferenceType){
+                    String string = classOrInterfaceType.toString();
+                    String replace = string.replace("List<", "Array<");
+                    fieldTemplate.append(replace+";\n");
+                }else{
+                    String string = classOrInterfaceType.toString();
+                    String replace = string.replace("List<", "Array<");
+                    fieldTemplate.append(replace+";\n");
+                }
+
             }else{
                 // 基础数据类型
                 String typeScriptDataType = Util.getTypeScriptDataType(typeName);
@@ -372,18 +389,21 @@ public class FirstAction extends AnAction {
                 String methodBNodyString = body.toString();
                 List<Statement> stmts = body.getStmts();
                 if(stmts != null){
-                    stmts.forEach(stmt->{
+
+                    for (Statement stmt : stmts ) {
                         if(stmt instanceof ReturnStmt){
                             ReturnStmt returnStmt = (ReturnStmt)stmt;
                             Expression expr = returnStmt.getExpr();
                             if(expr instanceof  NameExpr){
                                 NameExpr nameExpr = (NameExpr)expr;
                                 String nameExprName = nameExpr.getName();
-                                methodBNodyString.replace("return "+nameExprName,"return this."+nameExprName);
+                                methodBNodyString = methodBNodyString.replace("return "+nameExprName,"return this."+nameExprName);
                             }
-
                         }
-                    });
+                    }
+
+
+
                 }
 
 
@@ -398,7 +418,7 @@ public class FirstAction extends AnAction {
 
     public static void main(String[] args) throws IOException, ParseException {
 //        String javaFilePath = "E:/diandaxia/common/src/main/java/com/diandaxia/common/sdk/taobao/TaobaoTradesSoldGetRequest.java";
-        String javaFilePath = "E:/diandaxia/common/src/main/java/com/diandaxia/common/sdk/DdxBaseResponse.java";
+        String javaFilePath = "E:/diandaxia/common/src/main/java/com/diandaxia/common/sdk/demo/Order.java";
 //        String javaFilePath = "E:/diandaxia/common/src/main/java/com/diandaxia/common/sdk/DdxBaseRequest.java";
         String savePath = "D:/lqq/test";
         javaFileToTypescriptFile(javaFilePath, savePath);

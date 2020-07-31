@@ -2,6 +2,7 @@ import japa.parser.ast.body.BodyDeclaration;
 import japa.parser.ast.body.FieldDeclaration;
 import japa.parser.ast.body.VariableDeclarator;
 import japa.parser.ast.type.ClassOrInterfaceType;
+import japa.parser.ast.type.PrimitiveType;
 import japa.parser.ast.type.ReferenceType;
 import japa.parser.ast.type.Type;
 
@@ -92,20 +93,28 @@ public class Util {
      */
     public static Set<String> getJavaTypeNameSet(Type type){
         Set<String> javaTypeNameSet = new HashSet<>();
-        ReferenceType referenceType = (ReferenceType)type;
-        ClassOrInterfaceType classOrInterfaceType =  (ClassOrInterfaceType)referenceType.getType();
-        List<Type> typeArgs = classOrInterfaceType.getTypeArgs();
+        if(type instanceof PrimitiveType){
+            PrimitiveType primitiveType = (PrimitiveType)type;
+            String javaTypeName = primitiveType.toString();
+            javaTypeNameSet.add(javaTypeName);
+            return javaTypeNameSet;
+        }else{
+            ReferenceType referenceType = (ReferenceType)type;
+            ClassOrInterfaceType classOrInterfaceType =  (ClassOrInterfaceType)referenceType.getType();
+            List<Type> typeArgs = classOrInterfaceType.getTypeArgs();
 
-        String javaTypeName = classOrInterfaceType.getName();
-        javaTypeNameSet.add(javaTypeName);
-        if (typeArgs != null){
-            typeArgs.forEach(type1 -> {
+            String javaTypeName = classOrInterfaceType.getName();
+            javaTypeNameSet.add(javaTypeName);
+            if (typeArgs != null){
+                typeArgs.forEach(type1 -> {
 
-                Set<String> javaTypeNameList1 = getJavaTypeNameSet(type1);
-                javaTypeNameSet.addAll(javaTypeNameList1);
-            });
+                    Set<String> javaTypeNameList1 = getJavaTypeNameSet(type1);
+                    javaTypeNameSet.addAll(javaTypeNameList1);
+                });
+            }
+            return javaTypeNameSet;
         }
-        return javaTypeNameSet;
+
     }
 
     /**
@@ -114,6 +123,9 @@ public class Util {
      */
     public static String getReturnType(Type type){
         String returnType = "";
+        if(type instanceof  PrimitiveType){
+            return type.toString();
+        }
 
         ReferenceType referenceType =  (ReferenceType) type;
 
