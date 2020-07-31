@@ -5,6 +5,8 @@
   <vendor email="fackone@qq.com" url=""></vendor>
 
   <description><![CDATA[
+    选择文件或者选择单个文件夹  ,右键，并点击 【java bean to ts bean】菜单，选择ts文件保存的路径，路径最好不要是根路径，点击确定，然后去选择的文件看生成的文件
+
      1. 仅支持普通java bean 转成ts对象
      2. java方法体代码不转换，只转换返回值
      3. 已知|可能存在的问题：
@@ -12,6 +14,7 @@
         (2). ts文件import的路径可能不正确
         (3). 继承、实现之类的仍待实现
         (4). 泛型的引用尚未实现
+        (5). java代码不能转换
 
     ]]></description>
 
