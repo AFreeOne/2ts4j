@@ -270,7 +270,6 @@ public class FirstAction extends AnAction {
 
                 }else if( member instanceof MethodDeclaration){
 
-
                     // member是方法
                     MethodDeclaration method = (MethodDeclaration)member;
                     String templateFromMethod = getTemplateFromMethod(method);
@@ -356,7 +355,22 @@ public class FirstAction extends AnAction {
                     fieldTemplate.append(replace+";\n");
                 }
 
-            }else{
+            }else if("Map".equals(typeName)){
+                List<Type> typeArgs = classOrInterfaceType.getTypeArgs();
+                if(classOrInterfaceType != null){
+                    String keyType = Util.getReturnType(typeArgs.get(0));
+                    String valueType = Util.getReturnType(typeArgs.get(1));
+                    fieldTemplate.append("Map<"+keyType+","+valueType+">");
+                    fieldTemplate.append(";\n");
+                }
+            }else if("Set".equals(typeName)) {
+                List<Type> typeArgs = classOrInterfaceType.getTypeArgs();
+                if(classOrInterfaceType != null){
+                    String keyType = Util.getReturnType(typeArgs.get(0));
+                    fieldTemplate.append("Set<"+keyType+">");
+                    fieldTemplate.append(";\n");
+                }
+            } else {
                 // 基础数据类型
                 String typeScriptDataType = Util.getTypeScriptDataType(typeName);
                 fieldTemplate.append(typeScriptDataType+";\n");
@@ -409,6 +423,8 @@ public class FirstAction extends AnAction {
             methodTemplate.append("("+parametersJoin+"): ");
         }
 
+
+
         // 方法的返回类型
         Type type = method.getType();
         if(type instanceof VoidType){
@@ -458,7 +474,9 @@ public class FirstAction extends AnAction {
 //            String javaFilePath = "E:/diandaxia/common/src/main/java/com/diandaxia/common/sdk/taobao/TaobaoTradesSoldGetRequest.java";
 //        String javaFilePath = "E:/diandaxia/common/src/main/java/com/diandaxia/common/sdk/demo/Order.java";
 //        String javaFilePath = "E:/diandaxia/common/src/main/java/com/diandaxia/common/sdk/DdxBaseRequest.java";
-        String javaFilePath = "E:/diandaxia/common/src/main/java/com/diandaxia/common/sdk/jingdong/bean/ApiResult.java";
+//        String javaFilePath = "E:/diandaxia/common/src/main/java/com/diandaxia/common/sdk/jingdong/bean/ApiResult.java";
+        String javaFilePath = "E:/diandaxia/common/src/main/java/com/diandaxia/common/sdk/jingdong/bean/OrderSearchInfo.java";
+
         String savePath = "D:/lqq/test";
         javaFileToTypescriptFile(javaFilePath, savePath,null);
 

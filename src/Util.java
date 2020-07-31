@@ -213,17 +213,21 @@ public class Util {
                 returnType = typeScriptDataType;
             } else {
                 // list 之类
-
-
                 String childReturnType = getReturnType(typeArgs.get(0));
-
-
                 if ("Class".equals(classOrInterfaceType.getName())) {
                     returnType = getTypeScriptDataType(childReturnType + "|Function ");
-                } else {
+                } else if("List".equals(classOrInterfaceType.getName())) {
+                    returnType = "Array<" + childReturnType + ">";
+                }else if("Map".equals(classOrInterfaceType.getName())){
+                    String keyType = Util.getReturnType(typeArgs.get(0));
+                    String valueType = Util.getReturnType(typeArgs.get(1));
+                    returnType =  "Map<"+keyType+","+valueType+">";
+                }else if("Set".equals(classOrInterfaceType.getName())){
+                    String keyType = Util.getReturnType(typeArgs.get(0));
+                    returnType =  "Set<"+keyType+">";
+                }else {
                     returnType = "Array<" + childReturnType + ">";
                 }
-
             }
 
         } else {
