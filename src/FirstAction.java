@@ -1,12 +1,19 @@
-import com.fasterxml.jackson.databind.ObjectMapper;
 
+
+import com.intellij.execution.process.AnsiCommands;
 import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.FileChooser;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
-import com.intellij.openapi.project.Project;
+
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.ui.popup.Balloon;
+import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.vfs.VirtualFile;
+
+import com.intellij.openapi.wm.ToolWindow;
+import com.intellij.ui.JBColor;
 import japa.parser.JavaParser;
 import japa.parser.ParseException;
 import japa.parser.ast.CompilationUnit;
@@ -22,14 +29,18 @@ import japa.parser.ast.stmt.ReturnStmt;
 import japa.parser.ast.stmt.Statement;
 import japa.parser.ast.type.*;
 import javassist.bytecode.ClassFile;
+import org.jetbrains.annotations.NotNull;
 
 
+import javax.smartcardio.TerminalFactory;
 import javax.swing.*;
 import javax.swing.filechooser.FileSystemView;
 import javax.tools.JavaCompiler;
 import javax.tools.ToolProvider;
+import java.awt.*;
 import java.io.*;
 import java.util.*;
+import java.util.List;
 
 public class FirstAction extends AnAction {
 
@@ -50,6 +61,27 @@ public class FirstAction extends AnAction {
         System.err.println("-----------------------------------");
 
         VirtualFile data = event.getData(PlatformDataKeys.VIRTUAL_FILE);
+        ToolWindow toolWindow = event.getData(PlatformDataKeys.TOOL_WINDOW);
+        String title = toolWindow.getTitle();
+
+        Logger logger = Logger.getInstance(FirstAction.class);
+        // .info("ddd");
+        logger.info("ddd");
+        logger.info("ddd");
+
+        try {
+
+
+
+            Runtime.getRuntime().exec("cmd");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+
+        if(true){
+            return ;
+        }
 
         if (data.isDirectory()){
             //  是文件夹
@@ -121,6 +153,11 @@ public class FirstAction extends AnAction {
     }
 
 
+    @Override
+    public void update(@NotNull AnActionEvent e) {
+
+    }
+
     /**
      * java文件转typescrite文件
      * @param javaFilePath java文件的路径
@@ -129,6 +166,10 @@ public class FirstAction extends AnAction {
      */
     private static void javaFileToTypescriptFile(String javaFilePath,String savePath,String parentPath ){
         try {
+
+            // 用于储存字段的名字和类型
+            Map<String,String> fieldMap = new LinkedHashMap<>();
+
             javaFilePath.replace("file://", "");
             File javaFile = new File(javaFilePath);
 
@@ -246,7 +287,7 @@ public class FirstAction extends AnAction {
                 // member是字段
                 if(member instanceof FieldDeclaration){
                     FieldDeclaration field = (FieldDeclaration)member;
-                    String templateFromField = getTemplateFromField(field);
+                    String templateFromField = getTemplateFromField(field, fieldMap);
                     typeScriptFileContent.append(templateFromField);
 
                 }else if( member instanceof MethodDeclaration){
@@ -258,6 +299,8 @@ public class FirstAction extends AnAction {
                 }
             });
 
+            String constructorTemplate = Util.getConstructorTemplate(fieldMap,javaClass.getExtends() != null);
+            typeScriptFileContent.append(constructorTemplate);
 
             typeScriptFileContent.append("}\n");
             typeScriptFileContent.append("export = "+javaClassName+";");
@@ -277,7 +320,7 @@ public class FirstAction extends AnAction {
      * @param field
      * @return
      */
-    public static String getTemplateFromField(FieldDeclaration field){
+    public static String getTemplateFromField(FieldDeclaration field, Map<String,String> fieldMap){
         StringBuilder fieldTemplate = new StringBuilder();
         // 注释
         JavadocComment javaDoc = field.getJavaDoc();
@@ -312,7 +355,6 @@ public class FirstAction extends AnAction {
             classOrInterfaceType = (ClassOrInterfaceType)type.getType();
             // 获得类型的名称 String还是Inter之类的
             typeName = classOrInterfaceType.getName();
-
             arrayCount = type.getArrayCount();
         }else{
             PrimitiveType primitiveType = (PrimitiveType) field.getType();
@@ -324,6 +366,7 @@ public class FirstAction extends AnAction {
         // arrayCount == 1 是数组[]
         if (arrayCount == 1){
             fieldTemplate.append("Array<"+Util.getTypeScriptDataType(typeName)+">;\n");
+            fieldMap.put(name,"Array<"+Util.getTypeScriptDataType(typeName)+">");
         }else if(arrayCount == 0){
             // 可能是List，也是能是基础数据类型
             if("List".equals(typeName)){
@@ -331,10 +374,12 @@ public class FirstAction extends AnAction {
                     String string = classOrInterfaceType.toString();
                     String replace = string.replace("List<", "Array<");
                     fieldTemplate.append(replace+";\n");
+                    fieldMap.put(name,replace);
                 }else{
                     String string = classOrInterfaceType.toString();
                     String replace = string.replace("List<", "Array<");
                     fieldTemplate.append(replace+";\n");
+                    fieldMap.put(name,replace);
                 }
 
             }else if("Map".equals(typeName)){
@@ -344,6 +389,7 @@ public class FirstAction extends AnAction {
                     String valueType = Util.getReturnType(typeArgs.get(1));
                     fieldTemplate.append("Map<"+keyType+","+valueType+">");
                     fieldTemplate.append(";\n");
+                    fieldMap.put(name,"Map<"+keyType+","+valueType+">");
                 }
             }else if("Set".equals(typeName)) {
                 List<Type> typeArgs = classOrInterfaceType.getTypeArgs();
@@ -351,11 +397,13 @@ public class FirstAction extends AnAction {
                     String keyType = Util.getReturnType(typeArgs.get(0));
                     fieldTemplate.append("Set<"+keyType+">");
                     fieldTemplate.append(";\n");
+                    fieldMap.put(name,"Set<"+keyType+">");
                 }
             } else {
                 // 基础数据类型
                 String typeScriptDataType = Util.getTypeScriptDataType(typeName);
                 fieldTemplate.append(typeScriptDataType+";\n");
+                fieldMap.put(name,typeScriptDataType);
             }
         }
         return fieldTemplate.toString();

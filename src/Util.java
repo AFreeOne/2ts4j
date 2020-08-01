@@ -247,7 +247,7 @@ public class Util {
      */
     public static Set<String> getAllField(List<BodyDeclaration> temMembers) {
 
-        Set<String> fieldSet = new HashSet<>();
+        Set<String> fieldSet = new LinkedHashSet<>();
         if (temMembers != null) {
             temMembers.forEach(temMember -> {
                 if (temMember instanceof FieldDeclaration) {
@@ -259,6 +259,7 @@ public class Util {
                         String fieldName = variables.get(0).getId().getName();
                         fieldSet.add(fieldName);
                     }
+
                 }
             });
         }
@@ -357,6 +358,33 @@ public class Util {
 
         }
         return  null;
+    }
+
+    /**
+     * 获取构造方法字符串
+     * @param fieldMap
+     * @param isExtends 是否是继承
+     * @return
+     */
+    public static String getConstructorTemplate(Map<String,String> fieldMap,boolean isExtends){
+        StringBuilder constructorTemplate = new StringBuilder();
+        constructorTemplate.append("    constructor(");
+        List<String> parameterStrList = new LinkedList<>();
+        for (Map.Entry<String, String> entry : fieldMap.entrySet()) {
+            parameterStrList.add(entry.getKey()+"?: " + entry.getValue());
+        }
+        String join = String.join(", ", parameterStrList);
+        constructorTemplate.append(join);
+        constructorTemplate.append(") {\n");
+        if (isExtends){
+            constructorTemplate.append("super();\n");
+        }
+
+        for (Map.Entry<String, String> entry : fieldMap.entrySet()) {
+            constructorTemplate.append("        this."+entry.getKey()+" = " + entry.getKey()+";\n");
+        }
+        constructorTemplate.append("    }\n");
+        return constructorTemplate.toString();
     }
 
 
