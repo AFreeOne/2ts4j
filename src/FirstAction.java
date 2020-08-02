@@ -20,7 +20,10 @@ import com.intellij.openapi.wm.ToolWindow;
 
 import com.intellij.openapi.wm.ToolWindowFactory;
 import com.intellij.openapi.wm.ToolWindowManager;
+import com.intellij.openapi.wm.impl.ToolWindowImpl;
+import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
+import com.intellij.ui.content.ContentManager;
 import japa.parser.JavaParser;
 import japa.parser.ParseException;
 import japa.parser.ast.CompilationUnit;
@@ -46,6 +49,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 
+import java.awt.*;
 import java.io.*;
 import java.util.*;
 import java.util.List;
@@ -54,15 +58,12 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
 public class FirstAction extends AnAction {
-    Console console ;
+
     String beSeletedpath = null;
 
     ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
 
-    public FirstAction(){
-        console = new Console();
-        console.setVisible(true);
-    }
+
 
 
 
@@ -88,18 +89,10 @@ public class FirstAction extends AnAction {
         if (data.isDirectory()){
             //  是文件夹
             FileChooserDescriptor singleFolderDescriptor = null;
-         /*   if (path == null){
-                singleFolderDescriptor = FileChooserDescriptorFactory.createSingleFolderDescriptor();
-
-            }else{
-
-            }*/
-
             singleFolderDescriptor = FileChooserDescriptorFactory.createSingleFolderDescriptor();
             singleFolderDescriptor.setTitle("请选择转换之后的存放路径");
             singleFolderDescriptor.setDescription("ts文件将保存在指定的目录中");
 
-            System.err.println(project.getClass());
 //            VirtualFile toSelect = LocalFileSystem.getInstance().findFileByPath(File.separator + "Users" + File.separator + "wengyongcheng" + File.separator + "swagger-html" + File.separator);
 
             VirtualFile toSelect = null;
@@ -134,17 +127,6 @@ public class FirstAction extends AnAction {
                 }
             }
 
-            Messages.showMessageDialog(project, "转换成功", "操作",Messages.getInformationIcon());
-
-            scheduledExecutorService.submit(new Runnable() {
-                @Override
-                public void run() {
-                    if (console == null){
-                        console = new Console();
-                    }
-
-                }
-            });
 
 
 
@@ -160,12 +142,15 @@ public class FirstAction extends AnAction {
                     // 截取多出来的那一段路径
                     String replace = filePath.replace(path, "");
                     //savePath 保存路径加上相对路径
+
                     try {
                         javaFileToTypescriptFile(filePath,savePath+replace.substring(0,replace.lastIndexOf("/")),path);
-                        console.appendString(">" +filePath +"\n");
-                    }catch (Exception e){
-                        console.appendString(">" +filePath +"\n");
+                        writeInfo(project, filePath);
+
+                    } catch (Exception e) {
+                        e.printStackTrace();
                     }
+
 
                 }
             }
@@ -174,7 +159,7 @@ public class FirstAction extends AnAction {
         }else if("java".equals(data.getExtension())){
             // 是个java文件
 
-            console.setVisible(true);
+
             FileChooserDescriptor singleFolderDescriptor = FileChooserDescriptorFactory.createSingleFolderDescriptor();
             singleFolderDescriptor.setTitle("请选择转换之后的存放路径");
             VirtualFile newFileChooser =   FileChooser.chooseFile(singleFolderDescriptor, null,null);
@@ -189,23 +174,14 @@ public class FirstAction extends AnAction {
             }
 
             String path = data.getPath();
-            try {
-                javaFileToTypescriptFile(path,savePath,null);
-                console.appendString(">" +path +"\n");
-
-            }catch (Exception e){
-                console.appendString(">" +path +"  error\n");
-
-            }
-
-
-
+             javaFileToTypescriptFile(path,savePath,null);
+            writeInfo(project, path);
         }else {
             Messages.showErrorDialog("选java文件或文件夹", "异常操作");
         }
 
 
-        console.closeInSecond(3);
+
 
     }
 
@@ -585,6 +561,30 @@ public class FirstAction extends AnAction {
         return methodTemplate.toString();
 
 
+    }
+
+
+    public JTextArea getTextArea(Project project){
+        ToolWindowManager toolWindowManager = ToolWindowManager.getInstance(project);
+        ToolWindowImpl java_bean_to_ts_bean_result = (ToolWindowImpl)toolWindowManager.getToolWindow("java bean to ts bean result");
+
+        System.err.println("2222222222222222222222222");
+        boolean visible = java_bean_to_ts_bean_result.isVisible();
+        JComponent component = java_bean_to_ts_bean_result.getComponent();
+        System.err.println(component.getClass());
+        ContentManager contentManager = java_bean_to_ts_bean_result.getContentManager();
+        Content[] contents = contentManager.getContents();
+        JScrollPane jScrollPane = (JScrollPane)contents[0].getComponent();
+        JTextArea textArea = (JTextArea)jScrollPane.getViewport().getComponent(0);
+        return textArea;
+    }
+
+    public void writeInfo(Project project,String info){
+        JTextArea textArea = getTextArea(project);
+        textArea.append("\n");
+        textArea.append("> " + info);
+        textArea.append("\n");
+        textArea.setCaretPosition(textArea.getText().length());
     }
 
     public static void main(String[] args) throws IOException, ParseException {
