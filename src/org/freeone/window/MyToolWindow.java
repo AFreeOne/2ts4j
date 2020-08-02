@@ -39,8 +39,8 @@ public class MyToolWindow  {
         textArea.setEditable(true);
         textArea.setRows(8);
         textArea.setLineWrap(true);
-        textArea.setForeground(Color.WHITE);
-        textArea.setBackground(Color.BLACK);
+        textArea.setForeground(Color.BLACK);
+        textArea.setBackground(Color.WHITE);
 
         myToolWindowContent = new JScrollPane(textArea);
 //        myToolWindowContent.add(datetimeLabel);

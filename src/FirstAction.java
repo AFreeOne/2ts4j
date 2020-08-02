@@ -155,6 +155,9 @@ public class FirstAction extends AnAction {
                 }
             }
 
+            writeInfo(project, "转换结束");
+            Messages.showMessageDialog("转换结束", "提示", Messages.getInformationIcon());
+
 
         }else if("java".equals(data.getExtension())){
             // 是个java文件
@@ -176,6 +179,8 @@ public class FirstAction extends AnAction {
             String path = data.getPath();
              javaFileToTypescriptFile(path,savePath,null);
             writeInfo(project, path);
+            writeInfo(project, "转换结束");
+            Messages.showMessageDialog("转换结束", "提示", Messages.getInformationIcon());
         }else {
             Messages.showErrorDialog("选java文件或文件夹", "异常操作");
         }
