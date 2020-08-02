@@ -1,19 +1,26 @@
 
-
-import com.intellij.execution.process.AnsiCommands;
+import com.intellij.notification.EventLog;
 import com.intellij.openapi.actionSystem.*;
-import com.intellij.openapi.diagnostic.Logger;
+
 import com.intellij.openapi.fileChooser.FileChooser;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 
+import com.intellij.openapi.fileTypes.FileType;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.impl.ProjectImpl;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.ui.popup.Balloon;
+
 import com.intellij.openapi.ui.popup.JBPopupFactory;
+import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 
+import com.intellij.openapi.vfs.newvfs.impl.VirtualFileImpl;
 import com.intellij.openapi.wm.ToolWindow;
-import com.intellij.ui.JBColor;
+
+import com.intellij.openapi.wm.ToolWindowFactory;
+import com.intellij.openapi.wm.ToolWindowManager;
+import com.intellij.ui.content.ContentFactory;
 import japa.parser.JavaParser;
 import japa.parser.ParseException;
 import japa.parser.ast.CompilationUnit;
@@ -28,22 +35,34 @@ import japa.parser.ast.stmt.ExpressionStmt;
 import japa.parser.ast.stmt.ReturnStmt;
 import japa.parser.ast.stmt.Statement;
 import japa.parser.ast.type.*;
-import javassist.bytecode.ClassFile;
+
+import org.apache.commons.collections.CollectionUtils;
+
+import org.freeone.window.Console;
+import org.freeone.window.MyToolWindow;
 import org.jetbrains.annotations.NotNull;
 
 
-import javax.smartcardio.TerminalFactory;
 import javax.swing.*;
-import javax.swing.filechooser.FileSystemView;
-import javax.tools.JavaCompiler;
-import javax.tools.ToolProvider;
-import java.awt.*;
+import javax.swing.tree.DefaultMutableTreeNode;
+
 import java.io.*;
 import java.util.*;
 import java.util.List;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 
 public class FirstAction extends AnAction {
+    Console console ;
+    String beSeletedpath = null;
 
+    ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
+
+    public FirstAction(){
+        console = new Console();
+        console.setVisible(true);
+    }
 
 
 
@@ -59,42 +78,48 @@ public class FirstAction extends AnAction {
         // TODO: insert action logic here
 
         System.err.println("-----------------------------------");
-
+        Project project = event.getData(PlatformDataKeys.PROJECT);
         VirtualFile data = event.getData(PlatformDataKeys.VIRTUAL_FILE);
         ToolWindow toolWindow = event.getData(PlatformDataKeys.TOOL_WINDOW);
-        String title = toolWindow.getTitle();
-
-        Logger logger = Logger.getInstance(FirstAction.class);
-        // .info("ddd");
-        logger.info("ddd");
-        logger.info("ddd");
-
-        try {
+        ToolWindowManager toolWindowManager = ToolWindowManager.getInstance(project);
 
 
-
-            Runtime.getRuntime().exec("cmd");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-
-        if(true){
-            return ;
-        }
 
         if (data.isDirectory()){
             //  是文件夹
-            FileChooserDescriptor singleFolderDescriptor = FileChooserDescriptorFactory.createSingleFolderDescriptor();
+            FileChooserDescriptor singleFolderDescriptor = null;
+         /*   if (path == null){
+                singleFolderDescriptor = FileChooserDescriptorFactory.createSingleFolderDescriptor();
+
+            }else{
+
+            }*/
+
+            singleFolderDescriptor = FileChooserDescriptorFactory.createSingleFolderDescriptor();
             singleFolderDescriptor.setTitle("请选择转换之后的存放路径");
-            VirtualFile newFileChooser =   FileChooser.chooseFile(singleFolderDescriptor, null,null);
+            singleFolderDescriptor.setDescription("ts文件将保存在指定的目录中");
+
+            System.err.println(project.getClass());
+//            VirtualFile toSelect = LocalFileSystem.getInstance().findFileByPath(File.separator + "Users" + File.separator + "wengyongcheng" + File.separator + "swagger-html" + File.separator);
+
+            VirtualFile toSelect = null;
+            if (beSeletedpath != null){
+                toSelect = LocalFileSystem.getInstance().findFileByPath(beSeletedpath);
+            }
+
+            VirtualFile newFileChooser =   FileChooser.chooseFile(singleFolderDescriptor, null,toSelect);
+
             String savePath = "";
             if (null == newFileChooser){
                 Messages.showErrorDialog("请选择转换之后的文件夹", "错误");
                 return;
             }else{
                 savePath = newFileChooser.getPath();
+                beSeletedpath = savePath;
             }
+
+
+
             String path = data.getPath();
             List<String> filePaths = Util.getAllJavaFile(path, true);
             Util.fileRelativeLevel.clear();
@@ -109,6 +134,19 @@ public class FirstAction extends AnAction {
                 }
             }
 
+            Messages.showMessageDialog(project, "转换成功", "操作",Messages.getInformationIcon());
+
+            scheduledExecutorService.submit(new Runnable() {
+                @Override
+                public void run() {
+                    if (console == null){
+                        console = new Console();
+                    }
+
+                }
+            });
+
+
 
             for (String filePath : filePaths) {
                 filePath = filePath.replace("\\", "/");
@@ -118,10 +156,17 @@ public class FirstAction extends AnAction {
                     File file = new File(temSavePath);
                     file.mkdirs();
                 }else{
+
                     // 截取多出来的那一段路径
                     String replace = filePath.replace(path, "");
                     //savePath 保存路径加上相对路径
-                    javaFileToTypescriptFile(filePath,savePath+replace.substring(0,replace.lastIndexOf("/")),path);
+                    try {
+                        javaFileToTypescriptFile(filePath,savePath+replace.substring(0,replace.lastIndexOf("/")),path);
+                        console.appendString(">" +filePath +"\n");
+                    }catch (Exception e){
+                        console.appendString(">" +filePath +"\n");
+                    }
+
                 }
             }
 
@@ -129,6 +174,7 @@ public class FirstAction extends AnAction {
         }else if("java".equals(data.getExtension())){
             // 是个java文件
 
+            console.setVisible(true);
             FileChooserDescriptor singleFolderDescriptor = FileChooserDescriptorFactory.createSingleFolderDescriptor();
             singleFolderDescriptor.setTitle("请选择转换之后的存放路径");
             VirtualFile newFileChooser =   FileChooser.chooseFile(singleFolderDescriptor, null,null);
@@ -143,12 +189,23 @@ public class FirstAction extends AnAction {
             }
 
             String path = data.getPath();
+            try {
+                javaFileToTypescriptFile(path,savePath,null);
+                console.appendString(">" +path +"\n");
 
-            javaFileToTypescriptFile(path,savePath,null);
+            }catch (Exception e){
+                console.appendString(">" +path +"  error\n");
+
+            }
+
+
 
         }else {
             Messages.showErrorDialog("选java文件或文件夹", "异常操作");
         }
+
+
+        console.closeInSecond(3);
 
     }
 
@@ -531,7 +588,7 @@ public class FirstAction extends AnAction {
     }
 
     public static void main(String[] args) throws IOException, ParseException {
-
+/*
 //        String javaFilePath = "E:/diandaxia/common/src/main/java/com/diandaxia/common/sdk/taobao/TaobaoTradesSoldGetResponse.java";
 //            String javaFilePath = "E:/diandaxia/common/src/main/java/com/diandaxia/common/sdk/taobao/TaobaoTradesSoldGetRequest.java";
         String javaFilePath = "E:/diandaxia/common/src/main/java/com/diandaxia/common/sdk/demo/Order.java";
@@ -540,7 +597,8 @@ public class FirstAction extends AnAction {
 //        String javaFilePath = "E:/diandaxia/common/src/main/java/com/diandaxia/common/sdk/jingdong/bean/OrderSearchInfo.java";
 
         String savePath = "D:/lqq/test";
-        javaFileToTypescriptFile(javaFilePath, savePath,null);
+        javaFileToTypescriptFile(javaFilePath, savePath,null);*/
+
 
     }
 

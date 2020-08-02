@@ -50,10 +50,8 @@
   <depends>com.intellij.modules.platform</depends>
 
   <extensions defaultExtensionNs="com.intellij">
-      <toolWindow canCloseContents="true" anchor="bottom"
-                  id="输出"
-                  factoryClass="org.freeone.window.MyToolWindow">
-      </toolWindow>
+<!--      <toolWindow canCloseContents="true" anchor="bottom"   id="输出"  factoryClass="org.freeone.window.MyToolWindow">-->
+<!--      </toolWindow>-->
   </extensions>
 
   <actions>

@@ -29,7 +29,9 @@ import java.awt.event.MouseEvent;
 public class MyToolWindow implements ToolWindowFactory {
 
     Tree rootTree = new Tree();
+
     ///构造一个 有滚动条的面板
+    JFrame jFrame = new JFrame();
     JBScrollPane scrollPane=new JBScrollPane();
     private final String rootNodeName = "检查规则";
 
@@ -44,11 +46,11 @@ public class MyToolWindow implements ToolWindowFactory {
         Dimension screenSize=Toolkit.getDefaultToolkit().getScreenSize(); //得到屏幕的尺寸
         JPanel mainPanel=new JPanel();
         //设置主面板的大小
-        mainPanel.setPreferredSize(new Dimension((int)screenSize.getWidth()-50,(int)screenSize.getHeight()/3*2));
+        mainPanel.setPreferredSize(new Dimension(800,500));
         //tree 设置大小
-        rootTree.setPreferredSize(new Dimension((int)screenSize.getWidth()-50,(int)screenSize.getHeight()/3*2));
+        rootTree.setPreferredSize(new Dimension(800, 500));
         //设置滚动条面板位置
-        scrollPane.setPreferredSize(new Dimension((int)screenSize.getWidth()-50,(int)screenSize.getHeight()/3*2-50));
+        scrollPane.setPreferredSize(new Dimension(800,500-50));
         //将tree添加道滚动条面板上
         scrollPane.setViewportView(rootTree);
         //将滚动条面板设置哼可见
@@ -59,12 +61,17 @@ public class MyToolWindow implements ToolWindowFactory {
         scrollPane.getVerticalScrollBar().setDoubleBuffered(true);
 
         mainPanel.add(scrollPane);
+        mainPanel.setVisible(true);
+        jFrame.setContentPane(mainPanel);
+
+        jFrame.setVisible(true);
 
     }
     // 添加行数规则的node
     public void addLineNode(DefaultMutableTreeNode lineNode){
         rootNode = lineNode;
     }
+
     public void showToolWin(Project project){
 
         //构造一个treeModel 对象，进行刷新树操作
@@ -131,7 +138,9 @@ public class MyToolWindow implements ToolWindowFactory {
 
     @Override
     public void createToolWindowContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {
-
+        ContentFactory contentFactory = ContentFactory.SERVICE.getInstance();
+        Content content = contentFactory.createContent(scrollPane,"哈哈哈", true);
+        toolWindow.getContentManager().addContent(content);
     }
 
     @Override
@@ -147,5 +156,9 @@ public class MyToolWindow implements ToolWindowFactory {
     @Override
     public boolean isDoNotActivateOnStart() {
         return false;
+    }
+
+    public static void main(String[] args) {
+        new MyToolWindow();
     }
 }
