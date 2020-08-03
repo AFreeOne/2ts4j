@@ -1,33 +1,20 @@
 
-import com.intellij.notification.EventLog;
 import com.intellij.openapi.actionSystem.*;
-
 import com.intellij.openapi.fileChooser.FileChooser;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
-
-import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.impl.ProjectImpl;
 import com.intellij.openapi.ui.Messages;
-
-import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-
-import com.intellij.openapi.vfs.newvfs.impl.VirtualFileImpl;
 import com.intellij.openapi.wm.ToolWindow;
-
-import com.intellij.openapi.wm.ToolWindowFactory;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.openapi.wm.impl.ToolWindowImpl;
 import com.intellij.ui.content.Content;
-import com.intellij.ui.content.ContentFactory;
 import com.intellij.ui.content.ContentManager;
 import japa.parser.JavaParser;
 import japa.parser.ParseException;
 import japa.parser.ast.CompilationUnit;
-
 import japa.parser.ast.ImportDeclaration;
 import japa.parser.ast.PackageDeclaration;
 import japa.parser.ast.TypeParameter;
@@ -38,30 +25,27 @@ import japa.parser.ast.stmt.ExpressionStmt;
 import japa.parser.ast.stmt.ReturnStmt;
 import japa.parser.ast.stmt.Statement;
 import japa.parser.ast.type.*;
+import org.freeone.util.Util;
 
-import org.apache.commons.collections.CollectionUtils;
 
-import org.freeone.window.Console;
-import org.freeone.window.MyToolWindow;
+
+
 import org.jetbrains.annotations.NotNull;
 
 
 import javax.swing.*;
-import javax.swing.tree.DefaultMutableTreeNode;
 
-import java.awt.*;
 import java.io.*;
 import java.util.*;
 import java.util.List;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
+
+
 
 public class FirstAction extends AnAction {
 
     String beSeletedpath = null;
 
-    ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
+
 
 
 
@@ -144,8 +128,13 @@ public class FirstAction extends AnAction {
                     //savePath 保存路径加上相对路径
 
                     try {
-                        javaFileToTypescriptFile(filePath,savePath+replace.substring(0,replace.lastIndexOf("/")),path);
-                        writeInfo(project, filePath);
+                        String realSavePath = savePath+replace.substring(0,replace.lastIndexOf("/"));
+                        javaFileToTypescriptFile(filePath,realSavePath,path);
+
+
+                        String subFileName = filePath.substring(filePath.lastIndexOf("/"));
+                        subFileName = subFileName.replace(".java", ".ts");
+                        writeInfo(project, realSavePath+subFileName);
 
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -154,6 +143,7 @@ public class FirstAction extends AnAction {
 
                 }
             }
+
 
             writeInfo(project, "转换结束");
             Messages.showMessageDialog("转换结束", "提示", Messages.getInformationIcon());
@@ -179,6 +169,11 @@ public class FirstAction extends AnAction {
             String path = data.getPath();
              javaFileToTypescriptFile(path,savePath,null);
             writeInfo(project, path);
+
+
+
+            String resultFilePath = path.replace(path.replace("\\", "/"), savePath);
+            writeInfo(project, resultFilePath);
             writeInfo(project, "转换结束");
             Messages.showMessageDialog("转换结束", "提示", Messages.getInformationIcon());
         }else {
@@ -272,8 +267,6 @@ public class FirstAction extends AnAction {
                 }
             });
 
-
-
             // 先获取所有的字段
             Set<String> allField = Util.getAllField(temMembers);
             typeScriptFileContent.append("\n");
@@ -318,9 +311,6 @@ public class FirstAction extends AnAction {
             }
 
             List<BodyDeclaration> members = javaClass.getMembers();
-
-
-
             members.forEach(member -> {
                 // member是字段
                 if(member instanceof FieldDeclaration){
@@ -337,8 +327,8 @@ public class FirstAction extends AnAction {
                 }
             });
 
-            String constructorTemplate = Util.getConstructorTemplate(fieldMap,javaClass.getExtends() != null);
-            typeScriptFileContent.append(constructorTemplate);
+//            String constructorTemplate = Util.getConstructorTemplate(fieldMap,javaClass.getExtends() != null);
+//            typeScriptFileContent.append(constructorTemplate);
 
             typeScriptFileContent.append("}\n");
             typeScriptFileContent.append("export = "+javaClassName+";");
@@ -507,8 +497,6 @@ public class FirstAction extends AnAction {
             // 给抽象方法添加结束符
             methodTemplate.append(";\n ");
         }else{
-
-
             // 方法体
             BlockStmt body = method.getBody();
             if(body != null){
@@ -572,11 +560,9 @@ public class FirstAction extends AnAction {
     public JTextArea getTextArea(Project project){
         ToolWindowManager toolWindowManager = ToolWindowManager.getInstance(project);
         ToolWindowImpl java_bean_to_ts_bean_result = (ToolWindowImpl)toolWindowManager.getToolWindow("java bean to ts bean result");
-
-        System.err.println("2222222222222222222222222");
         boolean visible = java_bean_to_ts_bean_result.isVisible();
         JComponent component = java_bean_to_ts_bean_result.getComponent();
-        System.err.println(component.getClass());
+
         ContentManager contentManager = java_bean_to_ts_bean_result.getContentManager();
         Content[] contents = contentManager.getContents();
         JScrollPane jScrollPane = (JScrollPane)contents[0].getComponent();
@@ -584,6 +570,11 @@ public class FirstAction extends AnAction {
         return textArea;
     }
 
+    /**
+     * 将info添加到面板上
+     * @param project
+     * @param info
+     */
     public void writeInfo(Project project,String info){
         JTextArea textArea = getTextArea(project);
         textArea.append("\n");

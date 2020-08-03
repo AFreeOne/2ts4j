@@ -2,7 +2,7 @@
   <id>org.freeone.2ts4j</id>
   <name>java bean to ts bean</name>
   <version>0.0.5</version>
-  <vendor email="fackone@qq.com" url="">Lqq</vendor>
+  <vendor email="fackone@qq.com" url="https://github.com/AFreeOne">Lqq</vendor>
 
   <description>
 
@@ -52,7 +52,7 @@
   <extensions defaultExtensionNs="com.intellij">
 <!--      <toolWindow canCloseContents="true" anchor="bottom"   id="输出"  factoryClass="org.freeone.window.MyToolWindow">-->
 <!--      </toolWindow>-->
-      <toolWindow id="java bean to ts bean result" anchor="right" factoryClass="org.freeone.window.MyToolWindowFactory" secondary="true"/>
+      <toolWindow id="java bean to ts bean result" anchor="bottom" factoryClass="org.freeone.window.MyToolWindowFactory"  />
   </extensions>
 
   <actions>

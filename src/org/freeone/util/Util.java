@@ -1,3 +1,5 @@
+package org.freeone.util;
+
 import japa.parser.ast.ImportDeclaration;
 import japa.parser.ast.TypeParameter;
 import japa.parser.ast.body.BodyDeclaration;
@@ -14,7 +16,7 @@ import java.util.*;
 
 public class Util {
 
-    static Map<String,Integer> fileRelativeLevel = new LinkedHashMap<>();
+    public static Map<String,Integer> fileRelativeLevel = new LinkedHashMap<>();
     static List<String> typesToNumber = Arrays.asList("int", "Integer", "byte", "Byte", "short", "Short", "long", "Long", "float", "Float", "double", "Double","BigDecimal");
     static List<String> typesToString = Arrays.asList("String","StringBuilder","StringBuffer");
     static List<String> typesToBoolean = Arrays.asList("boolean", "Boolean");
