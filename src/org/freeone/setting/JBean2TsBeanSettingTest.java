@@ -1,20 +1,12 @@
 package org.freeone.setting;
 
 
-import com.intellij.openapi.fileChooser.FileChooser;
-import com.intellij.openapi.fileChooser.FileChooserDescriptor;
-import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurationException;
-import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
-import com.intellij.ui.components.fields.valueEditors.ValueEditor;
-
-
 import com.intellij.ui.table.JBTable;
-import org.apache.commons.lang.StringUtils;
+import org.freeone.swing.JBeantoTsBeanFolderMapTablePanel;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -22,13 +14,6 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableModel;
-import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.Vector;
 
 /**
  * https://www.jianshu.com/p/e6d49e3c7c60
@@ -36,8 +21,10 @@ import java.util.Vector;
  * @author wengyongcheng
  * @since 2020/3/14 10:16 下午
  */
-public class JBean2TsBeanSetting implements Configurable,Configurable.Composite {
+public class JBean2TsBeanSettingTest implements Configurable,Configurable.Composite {
     private JBPanel contentPane;
+
+    private JPanel folderMapPanel;
 
     private JTable pathTable;
 
@@ -45,37 +32,10 @@ public class JBean2TsBeanSetting implements Configurable,Configurable.Composite 
 
     private JBean2TsBeanComponent settings = JBean2TsBeanComponent.getInstance();
 
-    public JBean2TsBeanSetting(){init();}
+    public JBean2TsBeanSettingTest(){init();}
 
     private void init() {
-        contentPane = new JBPanel();
-        contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
-        contentPane.setLayout(null);
-
-        JButton addButton = new JButton("增加映射");
-        addButton.setBounds(10, 10, 93, 23);
-
-        contentPane.add(addButton);
-
-        JButton deleteButton = new JButton("删除映射");
-        deleteButton.setBounds(109, 10, 93, 23);
-        contentPane.add(deleteButton);
-
-        pathTable = new JBTable();
-
-        pathTable.setModel(new DefaultTableModel(
-                new Object[][] {
-                        {"123", "123222"}
-                },
-                new String[] {
-                        "Java源路径", "TypeScript目标路径"
-                }
-        ));
-
-        pathTable.setBounds(0, 0, 700, 180);
-        scrollPane = new JBScrollPane(pathTable);
-        scrollPane.setBounds(10, 43, 714, 191);
-        contentPane.add(scrollPane);
+        this.folderMapPanel =  new JBeantoTsBeanFolderMapTablePanel().folderMapPanel;
     }
 
     @Nls(capitalization = Nls.Capitalization.Title)
@@ -99,7 +59,7 @@ public class JBean2TsBeanSetting implements Configurable,Configurable.Composite 
     @Nullable
     @Override
     public JComponent createComponent() {
-        return contentPane;
+        return folderMapPanel;
     }
 
     /**
