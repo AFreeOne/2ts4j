@@ -154,8 +154,12 @@ public class FirstAction extends AnAction {
 
 
             FileChooserDescriptor singleFolderDescriptor = FileChooserDescriptorFactory.createSingleFolderDescriptor();
+            VirtualFile toSelect = null;
+            if (beSeletedpath != null){
+                toSelect = LocalFileSystem.getInstance().findFileByPath(beSeletedpath);
+            }
             singleFolderDescriptor.setTitle("请选择转换之后的存放路径");
-            VirtualFile newFileChooser =   FileChooser.chooseFile(singleFolderDescriptor, null,null);
+            VirtualFile newFileChooser =   FileChooser.chooseFile(singleFolderDescriptor, null,toSelect);
 
 
             String savePath = "";
@@ -164,6 +168,7 @@ public class FirstAction extends AnAction {
                 return;
             }else{
                 savePath = newFileChooser.getPath();
+                beSeletedpath = savePath;
             }
 
             String path = data.getPath();
@@ -561,7 +566,12 @@ public class FirstAction extends AnAction {
         ToolWindowManager toolWindowManager = ToolWindowManager.getInstance(project);
         ToolWindowImpl java_bean_to_ts_bean_result = (ToolWindowImpl)toolWindowManager.getToolWindow("java bean to ts bean result");
         boolean visible = java_bean_to_ts_bean_result.isVisible();
+        if (!visible){
+            java_bean_to_ts_bean_result.show(null);
+        }
         JComponent component = java_bean_to_ts_bean_result.getComponent();
+
+
 
         ContentManager contentManager = java_bean_to_ts_bean_result.getContentManager();
         Content[] contents = contentManager.getContents();
