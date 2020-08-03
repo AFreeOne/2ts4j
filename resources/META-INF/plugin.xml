@@ -54,7 +54,7 @@
 <!--      </toolWindow>-->
       <toolWindow id="java bean to ts bean result" anchor="bottom" factoryClass="org.freeone.window.MyToolWindowFactory"  />
       <applicationService serviceImplementation="org.freeone.setting.JBean2TsBeanComponent"/>
-      <applicationConfigurable instance="org.freeone.setting.JBean2TsBeanSettingTest" dynamic="true" id="JBean2TsBeanSettingTest"/>
+      <applicationConfigurable instance="org.freeone.setting.JBean2TsBeanSettingFromIdea" dynamic="false" id="JBean2TsBeanSettingTest"  />
   </extensions>
 
   <actions>

@@ -37,25 +37,28 @@ import java.util.Vector;
  * @since 2020/3/14 10:16 下午
  */
 public class JBean2TsBeanSetting implements Configurable,Configurable.Composite {
-    private JBPanel contentPane;
+     JBPanel contentPane;
 
-    private JTable pathTable;
+     JTable pathTable;
 
-    private JBScrollPane scrollPane;
+    JButton addButton;
 
-    private JBean2TsBeanComponent settings = JBean2TsBeanComponent.getInstance();
+     JBScrollPane scrollPane;
 
-    public JBean2TsBeanSetting(){init();}
+     JBean2TsBeanComponent settings = JBean2TsBeanComponent.getInstance();
+
+     JBean2TsBeanSetting(){init();}
 
     private void init() {
         contentPane = new JBPanel();
         contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
         contentPane.setLayout(null);
 
-        JButton addButton = new JButton("增加映射");
+        addButton = new JButton("增加映射");
         addButton.setBounds(10, 10, 93, 23);
 
         contentPane.add(addButton);
+
 
         JButton deleteButton = new JButton("删除映射");
         deleteButton.setBounds(109, 10, 93, 23);
@@ -76,6 +79,13 @@ public class JBean2TsBeanSetting implements Configurable,Configurable.Composite 
         scrollPane = new JBScrollPane(pathTable);
         scrollPane.setBounds(10, 43, 714, 191);
         contentPane.add(scrollPane);
+
+
+
+
+
+
+
     }
 
     @Nls(capitalization = Nls.Capitalization.Title)
@@ -111,6 +121,25 @@ public class JBean2TsBeanSetting implements Configurable,Configurable.Composite 
 //        String origSetting = settings.getSettingMap().get("folder path");
 //        String newSetting = textField.getText();
 //        return !StringUtils.equals(origSetting,newSetting);
+
+        addButton.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                super.mouseClicked(e);
+
+                pathTable.setModel(new DefaultTableModel(
+                        new Object[][] {
+                                {"11231231231231231231312323", "123222"}
+                        },
+                        new String[] {
+                                "Java源路径11", "TypeScript目标路径"
+                        }
+                ));
+                pathTable.updateUI();
+
+            }
+        });
+
         return true;
     }
 

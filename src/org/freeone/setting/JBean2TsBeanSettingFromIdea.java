@@ -21,7 +21,7 @@ import javax.swing.table.DefaultTableModel;
  * @author wengyongcheng
  * @since 2020/3/14 10:16 下午
  */
-public class JBean2TsBeanSettingTest implements Configurable,Configurable.Composite {
+public class JBean2TsBeanSettingFromIdea implements Configurable,Configurable.Composite {
     private JBPanel contentPane;
 
     private JPanel folderMapPanel;
@@ -32,7 +32,7 @@ public class JBean2TsBeanSettingTest implements Configurable,Configurable.Compos
 
     private JBean2TsBeanComponent settings = JBean2TsBeanComponent.getInstance();
 
-    public JBean2TsBeanSettingTest(){init();}
+    public JBean2TsBeanSettingFromIdea(){init();}
 
     private void init() {
         this.folderMapPanel =  new JBeantoTsBeanFolderMapTablePanel().folderMapPanel;
