@@ -1,7 +1,7 @@
 <idea-plugin>
   <id>org.freeone.2ts4j</id>
   <name>java bean to ts bean</name>
-  <version>0.0.5</version>
+  <version>0.0.6</version>
   <vendor email="fackone@qq.com" url="https://github.com/AFreeOne">Lqq</vendor>
 
   <description>
@@ -53,6 +53,8 @@
 <!--      <toolWindow canCloseContents="true" anchor="bottom"   id="输出"  factoryClass="org.freeone.window.MyToolWindow">-->
 <!--      </toolWindow>-->
       <toolWindow id="java bean to ts bean result" anchor="bottom" factoryClass="org.freeone.window.MyToolWindowFactory"  />
+      <applicationService serviceImplementation="org.freeone.setting.JBean2TsBeanComponent"/>
+      <applicationConfigurable instance="org.freeone.setting.JBean2TsBeanSetting" dynamic="true"/>
   </extensions>
 
   <actions>

@@ -26,6 +26,8 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
+
+@Deprecated
 public class MyToolWindowOld implements ToolWindowFactory {
 
     Tree rootTree = new Tree();

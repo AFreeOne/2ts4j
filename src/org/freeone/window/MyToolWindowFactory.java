@@ -8,6 +8,7 @@ import com.intellij.ui.content.ContentFactory;
 import org.jetbrains.annotations.NotNull;
 
 /**
+ * https://www.jianshu.com/p/c66c38b7dd4d
  * @author wengyongcheng
  * @since 2020/3/1 10:31 下午
  */
