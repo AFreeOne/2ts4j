@@ -7,10 +7,7 @@ import com.intellij.openapi.components.Storage;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * https://www.jianshu.com/p/e6d49e3c7c60
@@ -24,7 +21,10 @@ public class JBean2TsBeanComponent implements PersistentStateComponent<JBean2TsB
     /**
      *文件映射路径
      */
-    private List<String> folderList;
+    private List<String> folderMappingList;
+
+    @Deprecated
+    private LinkedHashMap<String,String> folderMap ;
 
 
     public static JBean2TsBeanComponent getInstance() {
@@ -40,9 +40,13 @@ public class JBean2TsBeanComponent implements PersistentStateComponent<JBean2TsB
         if (settingMap == null){
             settingMap = new HashMap<>();
         }
-        if (folderList == null){
-            folderList = new ArrayList<>();
+        if (folderMappingList == null){
+            folderMappingList = new ArrayList<>();
         }
+        if (folderMap == null){
+            folderMap = new LinkedHashMap();
+        }
+
     }
     @Nullable
     @Override
@@ -55,10 +59,14 @@ public class JBean2TsBeanComponent implements PersistentStateComponent<JBean2TsB
      */
     @Override
     public void loadState(@NotNull JBean2TsBeanComponent state) {
+        System.err.println("identityHashCode");
+        System.err.println(System.identityHashCode(this));
         Map<String, String> settingMap = state.getSettingMap();
-        List<String> folderList = state.getFolderList();
+        List<String> folderList = state.getFolderMappingList();
+        LinkedHashMap<String, String> folderMap = state.getFolderMap();
         setSettingMap(settingMap);
-        setFolderList(folderList);
+        setFolderMappingList(folderList);
+        setFolderMap(folderMap);
     }
 
     public Map<String, String> getSettingMap() {
@@ -69,11 +77,20 @@ public class JBean2TsBeanComponent implements PersistentStateComponent<JBean2TsB
         this.settingMap = settingMap;
     }
 
-    public List<String> getFolderList() {
-        return folderList;
+
+    public LinkedHashMap<String, String> getFolderMap() {
+        return folderMap;
     }
 
-    public void setFolderList(List<String> folderList) {
-        this.folderList = folderList;
+    public void setFolderMap(LinkedHashMap<String, String> folderMap) {
+        this.folderMap = folderMap;
+    }
+
+    public List<String> getFolderMappingList() {
+        return folderMappingList;
+    }
+
+    public void setFolderMappingList(List<String> folderMappingList) {
+        this.folderMappingList = folderMappingList;
     }
 }

@@ -1,5 +1,7 @@
 package org.freeone.util;
 
+import com.intellij.openapi.fileChooser.FileChooserDescriptor;
+import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import japa.parser.ast.ImportDeclaration;
 import japa.parser.ast.TypeParameter;
 import japa.parser.ast.body.BodyDeclaration;
@@ -16,11 +18,16 @@ import java.util.*;
 
 public class Util {
 
+    public static final String FOLDER_SPLIT = "\\|";
+    public static final String Origin_Folder = "originFolder";
+    public static final String Target_Folder = "targetFolder";
+
     public static Map<String,Integer> fileRelativeLevel = new LinkedHashMap<>();
     static List<String> typesToNumber = Arrays.asList("int", "Integer", "byte", "Byte", "short", "Short", "long", "Long", "float", "Float", "double", "Double","BigDecimal");
     static List<String> typesToString = Arrays.asList("String","StringBuilder","StringBuffer");
     static List<String> typesToBoolean = Arrays.asList("boolean", "Boolean");
     static List<String> typesToAny = Arrays.asList("Object");
+
 
 
     /**
@@ -387,6 +394,23 @@ public class Util {
         }
         constructorTemplate.append("    }\n");
         return constructorTemplate.toString();
+    }
+
+    /**
+     * 获取一个文件选择描述器
+     * @param title
+     * @param description
+     * @return
+     */
+    public static FileChooserDescriptor createFileChooserDescriptor(String title ,String description){
+        FileChooserDescriptor singleFolderDescriptor = FileChooserDescriptorFactory.createSingleFolderDescriptor();
+        if (title != null){
+            singleFolderDescriptor.setTitle(title);
+        }
+        if (description != null){
+            singleFolderDescriptor.setDescription(description);
+        }
+        return singleFolderDescriptor;
     }
 
 

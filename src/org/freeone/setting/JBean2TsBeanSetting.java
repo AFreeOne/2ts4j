@@ -149,8 +149,7 @@ public class JBean2TsBeanSetting implements Configurable,Configurable.Composite 
      */
     @Override
     public void apply() throws ConfigurationException {
-        settings.getSettingMap().put("folder path", "asd");
-        settings.getFolderList().add("1,1");
+
     }
 
     /**

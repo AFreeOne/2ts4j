@@ -3,10 +3,13 @@ package org.freeone.setting;
 
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurationException;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.table.JBTable;
 import org.freeone.swing.JBeantoTsBeanFolderMapTablePanel;
+import org.freeone.util.InstanceUtil;
+import org.freeone.util.Util;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -14,6 +17,9 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
+import java.awt.*;
+import java.util.*;
+import java.util.List;
 
 /**
  * https://www.jianshu.com/p/e6d49e3c7c60
@@ -22,6 +28,7 @@ import javax.swing.table.DefaultTableModel;
  * @since 2020/3/14 10:16 下午
  */
 public class JBean2TsBeanSettingFromIdea implements Configurable,Configurable.Composite {
+
     private JBPanel contentPane;
 
     private JPanel folderMapPanel;
@@ -35,7 +42,8 @@ public class JBean2TsBeanSettingFromIdea implements Configurable,Configurable.Co
     public JBean2TsBeanSettingFromIdea(){init();}
 
     private void init() {
-        this.folderMapPanel =  new JBeantoTsBeanFolderMapTablePanel().folderMapPanel;
+        JBeantoTsBeanFolderMapTablePanel jBeanToTsBeanFolderMapTablePanelInstance = InstanceUtil.getJBeantoTsBeanFolderMapTablePanelInstance();
+        this.folderMapPanel = jBeanToTsBeanFolderMapTablePanelInstance.folderMapPanel;
     }
 
     @Nls(capitalization = Nls.Capitalization.Title)
@@ -68,9 +76,7 @@ public class JBean2TsBeanSettingFromIdea implements Configurable,Configurable.Co
      */
     @Override
     public boolean isModified() {
-//        String origSetting = settings.getSettingMap().get("folder path");
-//        String newSetting = textField.getText();
-//        return !StringUtils.equals(origSetting,newSetting);
+
         return true;
     }
 
@@ -80,8 +86,34 @@ public class JBean2TsBeanSettingFromIdea implements Configurable,Configurable.Co
      */
     @Override
     public void apply() throws ConfigurationException {
-        settings.getSettingMap().put("folder path", "asd");
-        settings.getFolderList().add("1,1");
+
+        // TODO 点击apply保存表格数据
+        Component[] components = folderMapPanel.getComponents();
+        JScrollPane jScrollPane = null;
+        for (int i = 0; i < components.length; i++) {
+            if(components[i] instanceof JScrollPane){
+                jScrollPane = (JScrollPane)components[i];
+                break;
+            }
+        }
+        if (jScrollPane == null){
+            Messages.showErrorDialog("无法获取设置中的滚动面板", "错误");
+            return;
+        }
+
+        JBTable table = (JBTable)jScrollPane.getViewport().getView();
+        int rowCount = table.getRowCount();
+        List<String> folderMappingList = new ArrayList<>();
+        Vector rowDate = new Vector();
+        for (int i = 0; i < rowCount; i++) {
+
+            Object javaPath = table.getValueAt(i, 0);
+            Object tsPath = table.getValueAt(i, 1);
+            String folderMapping = (String) javaPath+"|" + (String) tsPath;
+            folderMappingList.add(folderMapping);
+
+        }
+        settings.setFolderMappingList(folderMappingList);
     }
 
     /**
