@@ -45,8 +45,7 @@ public class FirstAction extends AnAction {
 
     String beSeletedpath = null;
 
-
-
+    Project currentProject = null;
 
 
 
@@ -64,7 +63,7 @@ public class FirstAction extends AnAction {
 
         System.err.println("-----------------------------------");
         Project project = event.getProject();
-//        VirtualFile data = event.getData(PlatformDataKeys.VIRTUAL_FILE);
+        currentProject = project;
         ToolWindow toolWindow = event.getData(PlatformDataKeys.TOOL_WINDOW);
         ToolWindowManager toolWindowManager = ToolWindowManager.getInstance(project);
 
@@ -74,10 +73,7 @@ public class FirstAction extends AnAction {
             Messages.showInfoMessage("请先在配置项中设置相关文件映射", "错误");
             return ;
         }
-        for (String s : folderMappingList) {
-            System.err.println(s);
-        }
-//        String path = data.getPath();
+
         VirtualFile[] virtualFiles = event.getData(PlatformDataKeys.VIRTUAL_FILE_ARRAY);
         for (VirtualFile data : virtualFiles) {
             String path = data.getPath();
@@ -134,14 +130,11 @@ public class FirstAction extends AnAction {
             }else if("java".equals(data.getExtension())){
                 // 是个java文件
 
-
-
                 beChanged = true;
                 Map<String, String> folderMap = TemplateUtil.convertToFolderMap(folderMappingList);
                 Set<String> originFolderSet = folderMap.keySet();
                 for (String originFolder: originFolderSet) {
                     if (path.startsWith(originFolder)){
-
 
                         // 计算文件的层级，重要不可删除
                         List<String> filePaths = TemplateUtil.getAllJavaFile(originFolder, true);
@@ -157,9 +150,6 @@ public class FirstAction extends AnAction {
                                 TemplateUtil.fileRelativeLevel.put(fileRelativePath,i);
                             }
                         }
-
-
-
 
                         String originJavaFileFolderPath = path.substring(0, path.lastIndexOf("/"));
                         String targetFolder = folderMap.get(originFolder);
@@ -181,13 +171,6 @@ public class FirstAction extends AnAction {
                 Messages.showWarningDialog(path + "没有找到匹配的映射，请在配置中添加相关映射", "警告");
             }
         }
-
-
-
-
-
-
-
     }
 
 
@@ -202,7 +185,7 @@ public class FirstAction extends AnAction {
      * @param savePath  保存路径，不需要包含文件的名字
      * @param parentPath 父路径，传入此参数说明是将文件夹内的java文件全部转换成ts文件
      */
-    private static void javaFileToTypescriptFile(String javaFilePath,String savePath,String parentPath ){
+    private  void javaFileToTypescriptFile(String javaFilePath,String savePath,String parentPath ){
         try {
 
             // 用于储存字段的名字和类型
@@ -241,8 +224,6 @@ public class FirstAction extends AnAction {
             List<String> javaClassHasImported = new ArrayList<>();
             // 一般import处理，处理的是该包下子包的类的import
             List<ImportDeclaration> imports = parse.getImports();
-
-
 
             List<TypeDeclaration> types = parse.getTypes();
             // 获取第一个class
@@ -291,7 +272,7 @@ public class FirstAction extends AnAction {
             }else if(classModifiers == 1024 || classModifiers == 1025){
                 typeScriptFileContent.append("abstract ");
             }
-            Class<InternalError> Intergt = null;
+
 
             if (javaClass.isInterface()){
                 typeScriptFileContent.append("interface " + javaClassName+ " {\n");
@@ -337,14 +318,19 @@ public class FirstAction extends AnAction {
 
             typeScriptFileContent.append("}\n");
             typeScriptFileContent.append("export = "+javaClassName+";");
-
-           String typeScriptFileSavePath  = savePath  + "/"+javaClassName+".ts";
+            File savePathFolder = new File(savePath);
+            if(!savePathFolder.exists() ){
+                savePathFolder.mkdirs();
+            }
+            String typeScriptFileSavePath  = savePath  + "/"+javaClassName+".ts";
             BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(typeScriptFileSavePath,false),"utf-8"));
             bufferedWriter.write(typeScriptFileContent.toString());
             bufferedWriter.close();
 
         } catch ( Exception e) {
             e.printStackTrace();
+            writeInfo(currentProject, "异常");
+            writeInfo(currentProject, e.toString());
         }
 
     }
@@ -570,14 +556,10 @@ public class FirstAction extends AnAction {
             java_bean_to_ts_bean_result.show(null);
         }
         JComponent component = java_bean_to_ts_bean_result.getComponent();
-
-
-
         ContentManager contentManager = java_bean_to_ts_bean_result.getContentManager();
         Content[] contents = contentManager.getContents();
         JScrollPane jScrollPane = (JScrollPane)contents[0].getComponent();
-        JTextArea textArea = (JTextArea)jScrollPane.getViewport().getComponent(0);
-        return textArea;
+        return (JTextArea)jScrollPane.getViewport().getComponent(0);
     }
 
     /**

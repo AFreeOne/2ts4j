@@ -19,6 +19,7 @@ import java.awt.event.MouseEvent;
 import java.util.*;
 import java.util.List;
 
+
 public class JBeantoTsBeanFolderMapTablePanel {
 
     public JPanel folderMapPanel;
@@ -26,7 +27,7 @@ public class JBeantoTsBeanFolderMapTablePanel {
     private JButton removeButton;
     private JTable table1;
     private JScrollPane jScrollPane;
-    private JTextField textField1;
+
 
 
     public JBeantoTsBeanFolderMapTablePanel() {
@@ -166,7 +167,6 @@ public class JBeantoTsBeanFolderMapTablePanel {
     }
 
     private void createUIComponents() {
-        // TODO: place custom component creation code here
 
         JBean2TsBeanComponent instance = JBean2TsBeanComponent.getInstance();
 

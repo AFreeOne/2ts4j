@@ -2,15 +2,15 @@
   <id>org.freeone.2ts4j</id>
   <name>java bean to ts bean</name>
   <version>0.0.6</version>
-  <vendor email="fackone@qq.com" url="https://github.com/AFreeOne">Lqq</vendor>
+  <vendor email="fackone@qq.com" url="https://github.com/AFreeOne">LiQingQing</vendor>
 
   <description>
 
   Support for converting simple Java beans to Typescript beans    &lt;br/&gt;
 
     Select a Java Bean file or select a single folder, then right-click,    &lt;br/&gt;
-   and click the "Java Bean to TS Bean" menu, select the path to save the TS file,    &lt;br/&gt;
- "the target path should not be the root path", click OK,    &lt;br/&gt;
+   and click the "Java Bean to TS Bean" menu,     &lt;br/&gt;
+
  and then go to the target folder to see the generated files    &lt;br/&gt;
   1. Support for converting normal Java beans to Typescript beans,Complex Java code cannot be converted    &lt;br/&gt;
   2. The Java method body code does not convert, only the return value    &lt;br/&gt;
@@ -22,7 +22,7 @@
 
   支持简单的java bean 转换成 typescript bean    &lt;br/&gt;
   选择一个java bean文件或者选择单个文件夹  ,然后点击鼠标右键，    &lt;br/&gt;
-  并点击 【java bean to ts bean】菜单，选择ts文件要保存的路径，【目标路径最好不要是根路径】，点击确定，然后去目标文件夹中看生成的文件    &lt;br/&gt;
+  并点击 【java bean to ts bean】菜单， 点击 ，然后去目标文件夹中看生成的文件    &lt;br/&gt;
      1. 仅支持普通java bean 转成Typescript bean,无法转换复杂的java代码    &lt;br/&gt;
      2. java方法体代码不转换，只转换返回值    &lt;br/&gt;
      3. java bean的字段需要带有this.例如 this.name    &lt;br/&gt;
