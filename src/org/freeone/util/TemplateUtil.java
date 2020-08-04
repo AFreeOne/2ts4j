@@ -16,7 +16,7 @@ import japa.parser.ast.type.Type;
 import java.io.File;
 import java.util.*;
 
-public class Util {
+public class TemplateUtil {
 
     public static final String FOLDER_SPLIT = "\\|";
     public static final String Origin_Folder = "originFolder";
@@ -37,13 +37,13 @@ public class Util {
      * @return
      */
     public static String getTypeScriptDataType(String type) {
-        if (Util.typesToString.indexOf(type) != -1) {
+        if (TemplateUtil.typesToString.indexOf(type) != -1) {
             return "string";
-        } else if (Util.typesToNumber.indexOf(type) != -1) {
+        } else if (TemplateUtil.typesToNumber.indexOf(type) != -1) {
             return "number";
-        } else if (Util.typesToBoolean.indexOf(type) != -1) {
+        } else if (TemplateUtil.typesToBoolean.indexOf(type) != -1) {
             return "boolean";
-        } else if (Util.typesToAny.indexOf(type) != -1) {
+        } else if (TemplateUtil.typesToAny.indexOf(type) != -1) {
             return "any";
         } else {
             return type;
@@ -67,15 +67,15 @@ public class Util {
         for (File file : files) {
             if (file.isDirectory()) {
                 if (isAddDirectory) {
-                    list.add(file.getAbsolutePath());
+                    String absolutePath = file.getAbsolutePath();
+                    list.add(absolutePath.replace("\\","/"));
                 }
                 list.addAll(getAllJavaFile(file.getAbsolutePath(), isAddDirectory));
             } else {
                 String absolutePath = file.getAbsolutePath();
                 if (absolutePath.endsWith(".java")) {
-                    list.add(file.getAbsolutePath());
+                    list.add(absolutePath.replace("\\","/"));
                 }
-
             }
         }
         return list;
@@ -213,13 +213,13 @@ public class Util {
         if (arrayCount == 1) {
             // 数组
             String name = classOrInterfaceType.getName();
-            String typeScriptDataType = Util.getTypeScriptDataType(name);
+            String typeScriptDataType = TemplateUtil.getTypeScriptDataType(name);
             returnType = "Array<" + typeScriptDataType + ">";
         } else if (arrayCount == 0) {
             List<Type> typeArgs = classOrInterfaceType.getTypeArgs();
             if (typeArgs == null) {
                 // 基础数据类型
-                String typeScriptDataType = Util.getTypeScriptDataType(classOrInterfaceType.getName());
+                String typeScriptDataType = TemplateUtil.getTypeScriptDataType(classOrInterfaceType.getName());
                 returnType = typeScriptDataType;
             } else {
                 // list 之类
@@ -230,11 +230,11 @@ public class Util {
                 } else if("List".equals(classOrInterfaceType.getName())) {
                     returnType = "Array<" + childReturnType + ">";
                 }else if("Map".equals(classOrInterfaceType.getName())){
-                    String keyType = Util.getReturnType(typeArgs.get(0));
-                    String valueType = Util.getReturnType(typeArgs.get(1));
+                    String keyType = TemplateUtil.getReturnType(typeArgs.get(0));
+                    String valueType = TemplateUtil.getReturnType(typeArgs.get(1));
                     returnType =  "Map<"+keyType+","+valueType+">";
                 }else if("Set".equals(classOrInterfaceType.getName())){
-                    String keyType = Util.getReturnType(typeArgs.get(0));
+                    String keyType = TemplateUtil.getReturnType(typeArgs.get(0));
                     returnType =  "Set<"+keyType+">";
                 }else {
                     returnType = "Array<" + childReturnType + ">";
@@ -295,11 +295,14 @@ public class Util {
 
 
         Set<String> keySet = fileRelativeLevel.keySet();
+
+
         for (String key: keySet) {
             boolean contains = currentJavaFielPath.contains(key);
             if(currentJavaFielPath.contains(key)){
                 // 当前java文件的层级
                 Integer currentJavaFieLevel = fileRelativeLevel.get(key);
+
                 for (String classFileKey: keySet) {
                     // 存在多个文件名相同的情况下使用，由于一个文件夹不会存在同名文件，不用担心Key重复
                     Map<Integer,String> levelAndFilePath = new LinkedHashMap<>();
@@ -411,6 +414,23 @@ public class Util {
             singleFolderDescriptor.setDescription(description);
         }
         return singleFolderDescriptor;
+    }
+
+    /**
+     * 转换成键值对，键是源文件夹 ，值是目标文件夹
+     * @param folderMappingList
+     * @return
+     */
+    public static Map<String,String> convertToFolderMap(List<String> folderMappingList){
+        Map<String,String> folderMap = new LinkedHashMap<>();
+        if (folderMappingList == null || folderMappingList.isEmpty()){
+            return folderMap;
+        }
+        for (String folderMapping : folderMappingList) {
+            String[] folders = folderMapping.split(TemplateUtil.FOLDER_SPLIT);
+            folderMap.put(folders[0], folders[1]);
+        }
+        return folderMap;
     }
 
 

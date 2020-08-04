@@ -25,9 +25,9 @@ import japa.parser.ast.stmt.ExpressionStmt;
 import japa.parser.ast.stmt.ReturnStmt;
 import japa.parser.ast.stmt.Statement;
 import japa.parser.ast.type.*;
-import org.freeone.util.Util;
-
-
+import org.freeone.setting.JBean2TsBeanComponent;
+import org.freeone.util.FolderUtil;
+import org.freeone.util.TemplateUtil;
 
 
 import org.jetbrains.annotations.NotNull;
@@ -63,127 +63,127 @@ public class FirstAction extends AnAction {
         // TODO: insert action logic here
 
         System.err.println("-----------------------------------");
-        Project project = event.getData(PlatformDataKeys.PROJECT);
-        VirtualFile data = event.getData(PlatformDataKeys.VIRTUAL_FILE);
+        Project project = event.getProject();
+//        VirtualFile data = event.getData(PlatformDataKeys.VIRTUAL_FILE);
         ToolWindow toolWindow = event.getData(PlatformDataKeys.TOOL_WINDOW);
         ToolWindowManager toolWindowManager = ToolWindowManager.getInstance(project);
 
-
-
-        if (data.isDirectory()){
-            //  是文件夹
-            FileChooserDescriptor singleFolderDescriptor = null;
-            singleFolderDescriptor = FileChooserDescriptorFactory.createSingleFolderDescriptor();
-            singleFolderDescriptor.setTitle("请选择转换之后的存放路径");
-            singleFolderDescriptor.setDescription("ts文件将保存在指定的目录中");
-
-//            VirtualFile toSelect = LocalFileSystem.getInstance().findFileByPath(File.separator + "Users" + File.separator + "wengyongcheng" + File.separator + "swagger-html" + File.separator);
-
-            VirtualFile toSelect = null;
-            if (beSeletedpath != null){
-                toSelect = LocalFileSystem.getInstance().findFileByPath(beSeletedpath);
-            }
-
-            VirtualFile newFileChooser =   FileChooser.chooseFile(singleFolderDescriptor, null,toSelect);
-
-            String savePath = "";
-            if (null == newFileChooser){
-                Messages.showErrorDialog("请选择转换之后的文件夹", "错误");
-                return;
-            }else{
-                savePath = newFileChooser.getPath();
-                beSeletedpath = savePath;
-            }
-
-
-
-            String path = data.getPath();
-            List<String> filePaths = Util.getAllJavaFile(path, true);
-            Util.fileRelativeLevel.clear();
-            for (String str:filePaths) {
-
-                str = str.replace("\\","/");
-                String fileRelativePath = (str.replace(path, ""));
-                int i = Util.countMatches(fileRelativePath, "/");
-                // 文件的层级
-                if( fileRelativePath.endsWith(".java")){
-                     Util.fileRelativeLevel.put(fileRelativePath,i);
-                }
-            }
-
-
-
-
-            for (String filePath : filePaths) {
-                filePath = filePath.replace("\\", "/");
-                String temSavePath = filePath.replace(path, savePath);
-                if (!temSavePath.endsWith(".java")){
-                    // 文件夹
-                    File file = new File(temSavePath);
-                    file.mkdirs();
-                }else{
-
-                    // 截取多出来的那一段路径
-                    String replace = filePath.replace(path, "");
-                    //savePath 保存路径加上相对路径
-
-                    try {
-                        String realSavePath = savePath+replace.substring(0,replace.lastIndexOf("/"));
-                        javaFileToTypescriptFile(filePath,realSavePath,path);
-
-
-                        String subFileName = filePath.substring(filePath.lastIndexOf("/"));
-                        subFileName = subFileName.replace(".java", ".ts");
-                        writeInfo(project, realSavePath+subFileName);
-
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-
-
-                }
-            }
-
-
-            writeInfo(project, "转换结束");
-            Messages.showMessageDialog("转换结束", "提示", Messages.getInformationIcon());
-
-
-        }else if("java".equals(data.getExtension())){
-            // 是个java文件
-
-
-            FileChooserDescriptor singleFolderDescriptor = FileChooserDescriptorFactory.createSingleFolderDescriptor();
-            VirtualFile toSelect = null;
-            if (beSeletedpath != null){
-                toSelect = LocalFileSystem.getInstance().findFileByPath(beSeletedpath);
-            }
-            singleFolderDescriptor.setTitle("请选择转换之后的存放路径");
-            VirtualFile newFileChooser =   FileChooser.chooseFile(singleFolderDescriptor, null,toSelect);
-
-
-            String savePath = "";
-            if (null == newFileChooser){
-                Messages.showErrorDialog("请选择转换之后的文件夹", "错误");
-                return;
-            }else{
-                savePath = newFileChooser.getPath();
-                beSeletedpath = savePath;
-            }
-
-            String path = data.getPath();
-             javaFileToTypescriptFile(path,savePath,null);
-            writeInfo(project, path);
-
-
-
-            String resultFilePath = path.replace(path.replace("\\", "/"), savePath);
-            writeInfo(project, resultFilePath);
-            writeInfo(project, "转换结束");
-            Messages.showMessageDialog("转换结束", "提示", Messages.getInformationIcon());
-        }else {
-            Messages.showErrorDialog("选java文件或文件夹", "异常操作");
+        JBean2TsBeanComponent instance = JBean2TsBeanComponent.getInstance();
+        List<String> folderMappingList = instance.getFolderMappingList();
+        if (folderMappingList == null || folderMappingList.isEmpty()){
+            Messages.showInfoMessage("请先在配置项中设置相关文件映射", "错误");
+            return ;
         }
+        for (String s : folderMappingList) {
+            System.err.println(s);
+        }
+//        String path = data.getPath();
+        VirtualFile[] virtualFiles = event.getData(PlatformDataKeys.VIRTUAL_FILE_ARRAY);
+        for (VirtualFile data : virtualFiles) {
+            String path = data.getPath();
+            // 记录有没有转换过
+            boolean beChanged = false;
+            if (data.isDirectory()){
+                Map<String, String> folderMap = TemplateUtil.convertToFolderMap(folderMappingList);
+                Set<String> originFolderSet = folderMap.keySet();
+                for (String originFolder: originFolderSet) {
+                    // 如果选择的文件是java源文件夹开头
+                    if (path.startsWith(originFolder)){
+                        // 计算文件的层级，重要不可删除
+                        List<String> filePaths = TemplateUtil.getAllJavaFile(originFolder, true);
+                        TemplateUtil.fileRelativeLevel.clear();
+                        for (String str:filePaths) {
+
+                            str = str.replace("\\","/");
+                            String fileRelativePath = (str.replace(originFolder, ""));
+                            int i = TemplateUtil.countMatches(fileRelativePath, "/");
+                            // 文件的层级
+                            if( fileRelativePath.endsWith(".java")){
+                                TemplateUtil.fileRelativeLevel.put(fileRelativePath,i);
+                            }
+                        }
+
+
+
+                        beChanged = true;
+                        // ts目标文件文件夹
+                        String targetFolder = folderMap.get(originFolder);
+                        // 相对路径
+                        String relativePath = path.replace(originFolder, "");
+                        // 目标路径
+                        String tsAbsolutePath = targetFolder + relativePath;
+
+                        FolderUtil.clearFolderContent(tsAbsolutePath);
+                        writeInfo(project, "初始化路径："+ tsAbsolutePath);
+                        List<String> folderListInPath = FolderUtil.getFolderListInPath(path);
+                        List<String> pathListInTargetFolder = FolderUtil.convertToPathInTargetFolder(folderListInPath, path, tsAbsolutePath);
+                        FolderUtil.createFolders(pathListInTargetFolder);
+                        List<String> allJavaFile = TemplateUtil.getAllJavaFile(path, false);
+                        for (String javaFilePath : allJavaFile) {
+                            // 目标文件的路径，包含文件的名字了
+                            String saveFileAbsolutePath = javaFilePath.replace(path, tsAbsolutePath);
+                            String saveFolderPath = saveFileAbsolutePath.substring(0, saveFileAbsolutePath.lastIndexOf("/"));
+                            javaFileToTypescriptFile(javaFilePath, saveFolderPath, null);
+                            writeInfo(project, "源文件："+ javaFilePath);
+                            writeInfo(project, "目标文件："+ saveFileAbsolutePath.replace(".java", ".ts"));
+                        }
+
+                    }
+                }
+
+            }else if("java".equals(data.getExtension())){
+                // 是个java文件
+
+
+
+                beChanged = true;
+                Map<String, String> folderMap = TemplateUtil.convertToFolderMap(folderMappingList);
+                Set<String> originFolderSet = folderMap.keySet();
+                for (String originFolder: originFolderSet) {
+                    if (path.startsWith(originFolder)){
+
+
+                        // 计算文件的层级，重要不可删除
+                        List<String> filePaths = TemplateUtil.getAllJavaFile(originFolder, true);
+                        TemplateUtil.fileRelativeLevel.clear();
+                        for (String str:filePaths) {
+
+                            str = str.replace("\\","/");
+                            String fileRelativePath = (str.replace(originFolder, ""));
+                            int i = TemplateUtil.countMatches(fileRelativePath, "/");
+
+                            // 文件的层级
+                            if( fileRelativePath.endsWith(".java")){
+                                TemplateUtil.fileRelativeLevel.put(fileRelativePath,i);
+                            }
+                        }
+
+
+
+
+                        String originJavaFileFolderPath = path.substring(0, path.lastIndexOf("/"));
+                        String targetFolder = folderMap.get(originFolder);
+                        // 相对路径
+                        String relativePath = originJavaFileFolderPath.replace(originFolder, "");
+                        String savePath = targetFolder + relativePath;
+                        javaFileToTypescriptFile(path,savePath,null);
+                        writeInfo(project, "源文件："+ path);
+                        writeInfo(project, "目标文件："+ path.replace(originFolder,targetFolder).replace(".java", ".ts"));
+                    }
+                }
+
+            }else {
+                Messages.showErrorDialog("选java文件或文件夹", "异常操作");
+            }
+
+            if (!beChanged){
+
+                Messages.showWarningDialog(path + "没有找到匹配的映射，请在配置中添加相关映射", "警告");
+            }
+        }
+
+
+
 
 
 
@@ -199,7 +199,7 @@ public class FirstAction extends AnAction {
     /**
      * java文件转typescrite文件
      * @param javaFilePath java文件的路径
-     * @param savePath  保存路径
+     * @param savePath  保存路径，不需要包含文件的名字
      * @param parentPath 父路径，传入此参数说明是将文件夹内的java文件全部转换成ts文件
      */
     private static void javaFileToTypescriptFile(String javaFilePath,String savePath,String parentPath ){
@@ -250,13 +250,13 @@ public class FirstAction extends AnAction {
             // 临时的成员，用于查找属性，用户辨认是否在当前文件
             List<BodyDeclaration> temMembers = javaClass.getMembers();
             // 获取members中所有的java类型,判断并在import时导入相关类
-            Set<String> javaTypeInMembers = Util.getAllFieldJavaTypeInMembers(temMembers);
+            Set<String> javaTypeInMembers = TemplateUtil.getAllFieldJavaTypeInMembers(temMembers);
             //  获取继承中的java类型
-            Set<String> javaTypeInExtends = Util.getJavaTypeInExtends(javaClass.getExtends());
+            Set<String> javaTypeInExtends = TemplateUtil.getJavaTypeInExtends(javaClass.getExtends());
             // 添加其中一起判断和导入
             javaTypeInMembers.addAll(javaTypeInExtends);
             // 获取泛型中的java类型
-            Set<String> javaTypeInTypeParameters = Util.getJavaTypeInTypeParameters(javaClass.getTypeParameters());
+            Set<String> javaTypeInTypeParameters = TemplateUtil.getJavaTypeInTypeParameters(javaClass.getTypeParameters());
             javaTypeInMembers.addAll(javaTypeInTypeParameters);
 
 
@@ -264,7 +264,7 @@ public class FirstAction extends AnAction {
             // 不同路径引入
             javaTypeInMembers.forEach(javaTypeName ->{
                 if (javaClassHasImported.indexOf(javaTypeName) == -1){
-                    String importInDifferentFolder = Util.getImportInDifferentFolder(javaFilePath, javaTypeName,  tempPackageString ,imports);
+                    String importInDifferentFolder = TemplateUtil.getImportInDifferentFolder(javaFilePath, javaTypeName,  tempPackageString ,imports);
                     if(importInDifferentFolder != null){
                         javaClassHasImported.add(javaTypeName);
                         typeScriptFileContent.append(importInDifferentFolder);
@@ -273,7 +273,7 @@ public class FirstAction extends AnAction {
             });
 
             // 先获取所有的字段
-            Set<String> allField = Util.getAllField(temMembers);
+            Set<String> allField = TemplateUtil.getAllField(temMembers);
             typeScriptFileContent.append("\n");
             // 注释
             JavadocComment classJavaDoc = javaClass.getJavaDoc();
@@ -332,14 +332,14 @@ public class FirstAction extends AnAction {
                 }
             });
 
-//            String constructorTemplate = Util.getConstructorTemplate(fieldMap,javaClass.getExtends() != null);
+//            String constructorTemplate = TemplateUtil.getConstructorTemplate(fieldMap,javaClass.getExtends() != null);
 //            typeScriptFileContent.append(constructorTemplate);
 
             typeScriptFileContent.append("}\n");
             typeScriptFileContent.append("export = "+javaClassName+";");
 
            String typeScriptFileSavePath  = savePath  + "/"+javaClassName+".ts";
-            BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(typeScriptFileSavePath,true),"utf-8"));
+            BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(typeScriptFileSavePath,false),"utf-8"));
             bufferedWriter.write(typeScriptFileContent.toString());
             bufferedWriter.close();
 
@@ -398,8 +398,8 @@ public class FirstAction extends AnAction {
 
         // arrayCount == 1 是数组[]
         if (arrayCount == 1){
-            fieldTemplate.append("Array<"+Util.getTypeScriptDataType(typeName)+">;\n");
-            fieldMap.put(name,"Array<"+Util.getTypeScriptDataType(typeName)+">");
+            fieldTemplate.append("Array<"+ TemplateUtil.getTypeScriptDataType(typeName)+">;\n");
+            fieldMap.put(name,"Array<"+ TemplateUtil.getTypeScriptDataType(typeName)+">");
         }else if(arrayCount == 0){
             // 可能是List，也是能是基础数据类型
             if("List".equals(typeName)){
@@ -418,8 +418,8 @@ public class FirstAction extends AnAction {
             }else if("Map".equals(typeName)){
                 List<Type> typeArgs = classOrInterfaceType.getTypeArgs();
                 if(classOrInterfaceType != null){
-                    String keyType = Util.getReturnType(typeArgs.get(0));
-                    String valueType = Util.getReturnType(typeArgs.get(1));
+                    String keyType = TemplateUtil.getReturnType(typeArgs.get(0));
+                    String valueType = TemplateUtil.getReturnType(typeArgs.get(1));
                     fieldTemplate.append("Map<"+keyType+","+valueType+">");
                     fieldTemplate.append(";\n");
                     fieldMap.put(name,"Map<"+keyType+","+valueType+">");
@@ -427,14 +427,14 @@ public class FirstAction extends AnAction {
             }else if("Set".equals(typeName)) {
                 List<Type> typeArgs = classOrInterfaceType.getTypeArgs();
                 if(classOrInterfaceType != null){
-                    String keyType = Util.getReturnType(typeArgs.get(0));
+                    String keyType = TemplateUtil.getReturnType(typeArgs.get(0));
                     fieldTemplate.append("Set<"+keyType+">");
                     fieldTemplate.append(";\n");
                     fieldMap.put(name,"Set<"+keyType+">");
                 }
             } else {
                 // 基础数据类型
-                String typeScriptDataType = Util.getTypeScriptDataType(typeName);
+                String typeScriptDataType = TemplateUtil.getTypeScriptDataType(typeName);
                 fieldTemplate.append(typeScriptDataType+";\n");
                 fieldMap.put(name,typeScriptDataType);
             }
@@ -479,7 +479,7 @@ public class FirstAction extends AnAction {
         }else{
             List<String> parametersList = new LinkedList<>();
             parameters.forEach(parameter -> {
-                String parameterType = Util.getReturnType(parameter.getType());
+                String parameterType = TemplateUtil.getReturnType(parameter.getType());
                 String parameterName = parameter.getId().getName();
                 allParameterName.add(parameterName);
                 parametersList.add(parameterName + ": "+parameterType);
@@ -494,7 +494,7 @@ public class FirstAction extends AnAction {
         if(type instanceof VoidType){
             methodTemplate.append("void");
         }else{
-            returnType = Util.getReturnType(type);
+            returnType = TemplateUtil.getReturnType(type);
             methodTemplate.append(returnType);
         }
         // abstract抽象方法没方法体
@@ -586,11 +586,15 @@ public class FirstAction extends AnAction {
      * @param info
      */
     public void writeInfo(Project project,String info){
-        JTextArea textArea = getTextArea(project);
-        textArea.append("\n");
-        textArea.append("> " + info);
-        textArea.append("\n");
-        textArea.setCaretPosition(textArea.getText().length());
+        try {
+            JTextArea textArea = getTextArea(project);
+            textArea.append("\n");
+            textArea.append("> " + info);
+            textArea.append("\n");
+            textArea.setCaretPosition(textArea.getText().length());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public static void main(String[] args) throws IOException, ParseException {

@@ -4,14 +4,12 @@ import com.intellij.openapi.fileChooser.FileChooser;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.wm.ToolWindow;
-import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.table.JBTable;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.uiDesigner.core.Spacer;
 import org.freeone.setting.JBean2TsBeanComponent;
-import org.freeone.util.Util;
+import org.freeone.util.TemplateUtil;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -27,6 +25,7 @@ public class JBeantoTsBeanFolderMapTablePanel {
     private JButton addButton;
     private JButton removeButton;
     private JTable table1;
+    private JScrollPane jScrollPane;
     private JTextField textField1;
 
 
@@ -37,7 +36,7 @@ public class JBeantoTsBeanFolderMapTablePanel {
             @Override
             public void mouseClicked(MouseEvent e) {
                 super.mouseClicked(e);
-                FileChooserDescriptor javaFolderDescriptor = Util.createFileChooserDescriptor("请选择java源路径", null);
+                FileChooserDescriptor javaFolderDescriptor = TemplateUtil.createFileChooserDescriptor("请选择java源路径", null);
                 VirtualFile javaFileChoose = FileChooser.chooseFile(javaFolderDescriptor, null, null);
                 if (javaFileChoose == null) {
                     Messages.showErrorDialog("请选择Java源路径", "错误");
@@ -60,7 +59,7 @@ public class JBeantoTsBeanFolderMapTablePanel {
                 }
 
 
-                FileChooserDescriptor typeScriptDescriptor = Util.createFileChooserDescriptor("请选择TypeScript目标路径", null);
+                FileChooserDescriptor typeScriptDescriptor = TemplateUtil.createFileChooserDescriptor("请选择TypeScript目标路径", null);
                 VirtualFile typeScriptFileChoose = FileChooser.chooseFile(typeScriptDescriptor, null, null);
                 if (typeScriptFileChoose == null) {
                     Messages.showErrorDialog("请选择TypeScript目标路径", "错误");
@@ -152,12 +151,11 @@ public class JBeantoTsBeanFolderMapTablePanel {
         removeButton = new JButton();
         removeButton.setText("删除映射");
         folderMapPanel.add(removeButton, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-        final JScrollPane scrollPane1 = new JScrollPane();
-
-        folderMapPanel.add(scrollPane1, new GridConstraints(1, 0, 1, 3, GridConstraints.ANCHOR_NORTH, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
+        jScrollPane = new JScrollPane();
+        folderMapPanel.add(jScrollPane, new GridConstraints(1, 0, 1, 3, GridConstraints.ANCHOR_NORTH, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
         table1.setDropMode(DropMode.ON_OR_INSERT_ROWS);
         table1.setSurrendersFocusOnKeystroke(false);
-        scrollPane1.setViewportView(table1);
+        jScrollPane.setViewportView(table1);
     }
 
     /**
@@ -177,7 +175,7 @@ public class JBeantoTsBeanFolderMapTablePanel {
         for (int i = 0; i < folderMappingList.size(); i++) {
             Vector cellDate = new Vector();
             String folderMapping = folderMappingList.get(i);
-            String[] folders = folderMapping.split(Util.FOLDER_SPLIT);
+            String[] folders = folderMapping.split(TemplateUtil.FOLDER_SPLIT);
             String originFolder = folders[0];
             String targetFolder = folders[1];
             cellDate.add(originFolder);
