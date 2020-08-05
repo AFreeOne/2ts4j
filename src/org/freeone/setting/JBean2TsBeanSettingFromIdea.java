@@ -9,11 +9,13 @@ import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.table.JBTable;
 import org.freeone.swing.JBeantoTsBeanFolderMapTablePanel;
 import org.freeone.util.InstanceUtil;
+import org.freeone.util.TemplateUtil;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.*;
 import java.util.List;
@@ -118,8 +120,50 @@ public class JBean2TsBeanSettingFromIdea implements Configurable,Configurable.Co
      */
     @Override
     public void reset() {
-        init();
+        reloadTable();
     }
 
+
+    @Override
+    public void cancel() {
+        reloadTable();
+    }
+
+    /**
+     * 重新加载表格
+     */
+    private void reloadTable(){
+        Component[] components = folderMapPanel.getComponents();
+        JScrollPane jScrollPane = null;
+        for (int i = 0; i < components.length; i++) {
+            if(components[i] instanceof JScrollPane){
+                jScrollPane = (JScrollPane)components[i];
+                break;
+            }
+        }
+        if (jScrollPane == null){
+            Messages.showErrorDialog("无法获取设置中的滚动面板", "错误");
+            return;
+        }
+        JBTable table = (JBTable)jScrollPane.getViewport().getView();
+        Vector rowDate = new Vector();
+        List<String> folderMappingList = settings.getFolderMappingList();
+        for (int i = 0; i < folderMappingList.size(); i++) {
+            Vector cellDate = new Vector();
+            String folderMapping = folderMappingList.get(i);
+            String[] folders = folderMapping.split(TemplateUtil.FOLDER_SPLIT);
+            String originFolder = folders[0];
+            String targetFolder = folders[1];
+            cellDate.add(originFolder);
+            cellDate.add(targetFolder);
+            rowDate.add(cellDate);
+        }
+
+        Vector columnData = new Vector();
+        columnData.add("Java源路径");
+        columnData.add("TypeScript目标路径");
+        table.setModel(new DefaultTableModel(rowDate, columnData));
+
+    }
 
 }
