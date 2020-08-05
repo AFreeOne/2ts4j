@@ -1,69 +1,28 @@
-<idea-plugin>
+<idea-plugin url="https://github.com/AFreeOne">
   <id>org.freeone.2ts4j</id>
   <name>java bean to ts bean</name>
   <version>0.0.6</version>
-  <vendor email="fackone@qq.com" url="https://github.com/AFreeOne">LiQingQing</vendor>
+  <vendor email="1357441309@qq.com" url="https://github.com/AFreeOne">LiQingQing</vendor>
 
   <description>
-
-  Support for converting simple Java beans to Typescript beans    &lt;br/&gt;
-
-    Select a Java Bean file or select a single folder, then right-click,    &lt;br/&gt;
-   and click the "Java Bean to TS Bean" menu,     &lt;br/&gt;
-
- and then go to the target folder to see the generated files    &lt;br/&gt;
-  1. Support for converting normal Java beans to Typescript beans,Complex Java code cannot be converted    &lt;br/&gt;
-  2. The Java method body code does not convert, only the return value    &lt;br/&gt;
-  3. Fields in java bean require this. e.g.  'this.name'    &lt;br/&gt;
-  4. some problems：    &lt;br/&gt;
-     (1). Multilayer generics can cause errors，e.g.   There may be some problems to convert Request《Response《Map《K,V》》》.    &lt;br/&gt;
-     (2). The import path for ts files may not be correct.    &lt;br/&gt;
-     (3). constructor ?    &lt;br/&gt;
-
-  支持简单的java bean 转换成 typescript bean    &lt;br/&gt;
-  选择一个java bean文件或者选择单个文件夹  ,然后点击鼠标右键，    &lt;br/&gt;
-  并点击 【java bean to ts bean】菜单， 点击 ，然后去目标文件夹中看生成的文件    &lt;br/&gt;
-     1. 仅支持普通java bean 转成Typescript bean,无法转换复杂的java代码    &lt;br/&gt;
-     2. java方法体代码不转换，只转换返回值    &lt;br/&gt;
-     3. java bean的字段需要带有this.例如 this.name    &lt;br/&gt;
-     4. 已知|可能存在的问题：    &lt;br/&gt;
-        (1). 多层泛型可能会出错, 例如， Request《Response《Map《K,V》》》  会出错     &lt;br/&gt;
-        (2). ts文件import的路径可能不正确    &lt;br/&gt;
-        (3). 考虑加入构造方法  &lt;br/&gt;
-
-    </description>
+      adds support for transforming DTO java file to typeScript bean file
+  </description>
 
   <change-notes>
-      2020.08.01 0.0.4 some  &lt;br/&gt;
-
+      2020.08.01 0.0.5 add description   &lt;br/&gt;
+      2020.08.01 0.0.5 add folder mapping to  setting  &lt;br/&gt;
   </change-notes>
-  <change-notes><![CDATA[
-      2020.08.01 0.0.4 some
-    ]]>
-  </change-notes>
-
-  <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/build_number_ranges.html for description -->
   <idea-version since-build="173.0"/>
-
-  <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/plugin_compatibility.html
-       on how to target different products -->
   <depends>com.intellij.modules.platform</depends>
-
   <extensions defaultExtensionNs="com.intellij">
-<!--      <toolWindow canCloseContents="true" anchor="bottom"   id="输出"  factoryClass="org.freeone.window.MyToolWindow">-->
-<!--      </toolWindow>-->
       <toolWindow id="java bean to ts bean result" anchor="bottom" factoryClass="org.freeone.window.MyToolWindowFactory"  />
       <applicationService serviceImplementation="org.freeone.setting.JBean2TsBeanComponent"/>
       <applicationConfigurable instance="org.freeone.setting.JBean2TsBeanSettingFromIdea" dynamic="false" id="JBean2TsBeanSettingTest"  />
   </extensions>
-
   <actions>
-
-    <!-- Add your actions here -->
     <action id="FirstAction" class="FirstAction" text="java bean to ts bean" description="java bean to ts bean">
         <add-to-group group-id="ProjectViewPopupMenuModifyGroup" anchor="after" relative-to-action="$Delete"/>
     </action>
-
   </actions>
 
 </idea-plugin>

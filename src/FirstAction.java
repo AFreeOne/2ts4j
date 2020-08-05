@@ -74,6 +74,8 @@ public class FirstAction extends AnAction {
             return ;
         }
 
+        clearTextArea(project);
+
         VirtualFile[] virtualFiles = event.getData(PlatformDataKeys.VIRTUAL_FILE_ARRAY);
         for (VirtualFile data : virtualFiles) {
             String path = data.getPath();
@@ -159,6 +161,7 @@ public class FirstAction extends AnAction {
                         javaFileToTypescriptFile(path,savePath,null);
                         writeInfo(project, "源文件："+ path);
                         writeInfo(project, "目标文件："+ path.replace(originFolder,targetFolder).replace(".java", ".ts"));
+
                     }
                 }
 
@@ -167,8 +170,9 @@ public class FirstAction extends AnAction {
             }
 
             if (!beChanged){
-
                 Messages.showWarningDialog(path + "没有找到匹配的映射，请在配置中添加相关映射", "警告");
+            }else{
+                writeActionComplete(project);
             }
         }
     }
@@ -560,6 +564,26 @@ public class FirstAction extends AnAction {
         Content[] contents = contentManager.getContents();
         JScrollPane jScrollPane = (JScrollPane)contents[0].getComponent();
         return (JTextArea)jScrollPane.getViewport().getComponent(0);
+    }
+
+    /**
+     * 清理日志信息
+     * @param project
+     */
+    public void clearTextArea(Project project){
+        try {
+            JTextArea textArea = getTextArea(project);
+            textArea.setText("");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void writeActionComplete(Project project){
+        JTextArea textArea = getTextArea(project);
+        textArea.append("\n");
+        textArea.append("========== 转 换 完 成 ==========");
+        textArea.append("\n");
     }
 
     /**
