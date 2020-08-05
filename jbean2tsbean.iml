@@ -10,5 +10,6 @@
     <orderEntry type="jdk" jdkName="IntelliJ IDEA IU-193.6911.18" jdkType="IDEA JDK" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="javaparser-1.0.8" level="project" />
+    <orderEntry type="library" name="javaparser-1.0.8" level="project" />
   </component>
 </module>

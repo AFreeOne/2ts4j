@@ -1,28 +1,34 @@
 <idea-plugin url="https://github.com/AFreeOne">
-  <id>org.freeone.2ts4j</id>
-  <name>java bean to ts bean</name>
-  <version>0.0.6</version>
-  <vendor email="1357441309@qq.com" url="https://github.com/AFreeOne">LiQingQing</vendor>
+    <id>org.freeone.2ts4j</id>
+    <name>java bean to ts bean</name>
+    <version>0.0.6</version>
+    <vendor email="1357441309@qq.com" url="https://github.com/AFreeOne">LiQingQing</vendor>
 
-  <description>
-      adds support for transforming DTO java file to typeScript bean file
-  </description>
+    <description>
+        adds support for transforming DTO java file to typeScript bean file
+    </description>
 
-  <change-notes>
-      2020.08.01 0.0.5 add description   &lt;br/&gt;
-      2020.08.01 0.0.5 add folder mapping to  setting  &lt;br/&gt;
-  </change-notes>
-  <idea-version since-build="173.0"/>
-  <depends>com.intellij.modules.platform</depends>
-  <extensions defaultExtensionNs="com.intellij">
-      <toolWindow id="java bean to ts bean result" anchor="bottom" factoryClass="org.freeone.window.MyToolWindowFactory"  />
-      <applicationService serviceImplementation="org.freeone.setting.JBean2TsBeanComponent"/>
-      <applicationConfigurable instance="org.freeone.setting.JBean2TsBeanSettingFromIdea" dynamic="false" id="JBean2TsBeanSettingTest"  />
-  </extensions>
-  <actions>
-    <action id="FirstAction" class="FirstAction" text="java bean to ts bean" description="java bean to ts bean">
-        <add-to-group group-id="ProjectViewPopupMenuModifyGroup" anchor="after" relative-to-action="$Delete"/>
-    </action>
-  </actions>
+    <change-notes>
+        2020.08.01 0.0.5 add description &lt;br/&gt;
+        2020.08.01 0.0.5 add folder mapping to setting &lt;br/&gt;
+    </change-notes>
+    <idea-version since-build="173.0"/>
+    <depends>com.intellij.modules.platform</depends>
+    <extensions defaultExtensionNs="com.intellij">
+        <toolWindow id="java bean to ts bean result" anchor="bottom"
+                    factoryClass="org.freeone.window.MyToolWindowFactory"/>
+        <applicationService serviceImplementation="org.freeone.setting.JBean2TsBeanComponent"/>
+        <applicationConfigurable instance="org.freeone.setting.JBean2TsBeanSettingFromIdea" dynamic="false"
+                                 id="JBean2TsBeanSettingTest"/>
+    </extensions>
+    <actions>
+        <action id="FirstAction" class="FirstAction" text="java bean to ts bean" description="java bean to ts bean">
+            <add-to-group group-id="ProjectViewPopupMenuModifyGroup" anchor="after" relative-to-action="$Delete"/>
+        </action>
+        <action id="ApiDocGeneratorAction" class="org.freeone.ApiDocGeneratorAction" text="ApiDocGeneratorAction"
+                description="ApiDocGeneratorAction">
+            <add-to-group group-id="ProjectViewPopupMenuModifyGroup" anchor="after" relative-to-action="$Delete"/>
+        </action>
+    </actions>
 
 </idea-plugin>
