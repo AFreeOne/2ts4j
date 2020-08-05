@@ -1,15 +1,10 @@
 
 import com.intellij.openapi.actionSystem.*;
-import com.intellij.openapi.fileChooser.FileChooser;
-import com.intellij.openapi.fileChooser.FileChooserDescriptor;
-import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
-import com.intellij.openapi.wm.impl.ToolWindowImpl;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentManager;
 import japa.parser.JavaParser;
@@ -28,13 +23,8 @@ import japa.parser.ast.type.*;
 import org.freeone.setting.JBean2TsBeanComponent;
 import org.freeone.util.FolderUtil;
 import org.freeone.util.TemplateUtil;
-
-
 import org.jetbrains.annotations.NotNull;
-
-
 import javax.swing.*;
-
 import java.io.*;
 import java.util.*;
 import java.util.List;
@@ -43,7 +33,6 @@ import java.util.List;
 
 public class FirstAction extends AnAction {
 
-    String beSeletedpath = null;
 
     Project currentProject = null;
 
@@ -553,7 +542,7 @@ public class FirstAction extends AnAction {
      */
     public JTextArea getTextArea(Project project){
         ToolWindowManager toolWindowManager = ToolWindowManager.getInstance(project);
-        ToolWindowImpl java_bean_to_ts_bean_result = (ToolWindowImpl)toolWindowManager.getToolWindow("java bean to ts bean result");
+        ToolWindow java_bean_to_ts_bean_result = (ToolWindow)toolWindowManager.getToolWindow("java bean to ts bean result");
         boolean visible = java_bean_to_ts_bean_result.isVisible();
         if (!visible){
             java_bean_to_ts_bean_result.show(null);
