@@ -11,6 +11,7 @@ import java.util.*;
 
 /**
  * https://www.jianshu.com/p/e6d49e3c7c60
+ * 配置文件的映射
  */
 @State(name = "JavaBeanToTsBeanSetting",storages =  @Storage(value = "Java-Bean-To-Ts-Bean-Setting.xml"))
 public class JBean2TsBeanComponent implements PersistentStateComponent<JBean2TsBeanComponent> {
@@ -59,8 +60,6 @@ public class JBean2TsBeanComponent implements PersistentStateComponent<JBean2TsB
      */
     @Override
     public void loadState(@NotNull JBean2TsBeanComponent state) {
-        System.err.println("identityHashCode");
-        System.err.println(System.identityHashCode(this));
         Map<String, String> settingMap = state.getSettingMap();
         List<String> folderList = state.getFolderMappingList();
         LinkedHashMap<String, String> folderMap = state.getFolderMap();

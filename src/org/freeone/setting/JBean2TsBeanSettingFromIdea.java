@@ -163,7 +163,8 @@ public class JBean2TsBeanSettingFromIdea implements Configurable,Configurable.Co
         columnData.add("Java源路径");
         columnData.add("TypeScript目标路径");
         table.setModel(new DefaultTableModel(rowDate, columnData));
-
     }
+
+
 
 }

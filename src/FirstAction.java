@@ -189,7 +189,7 @@ public class FirstAction extends AnAction {
      * @param savePath  保存路径，不需要包含文件的名字
      * @param parentPath 父路径，传入此参数说明是将文件夹内的java文件全部转换成ts文件
      */
-    private  void javaFileToTypescriptFile(String javaFilePath,String savePath,String parentPath ){
+    public  void javaFileToTypescriptFile(String javaFilePath,String savePath,String parentPath ){
         try {
 
             // 用于储存字段的名字和类型
@@ -369,10 +369,7 @@ public class FirstAction extends AnAction {
         // 字段类型
         String typeName = "";
         int arrayCount = 0;
-
-
         ClassOrInterfaceType classOrInterfaceType = null;
-
         if (field.getType() instanceof ReferenceType){
             ReferenceType type = (ReferenceType)field.getType();
             classOrInterfaceType = (ClassOrInterfaceType)type.getType();
@@ -382,7 +379,6 @@ public class FirstAction extends AnAction {
         }else{
             PrimitiveType primitiveType = (PrimitiveType) field.getType();
             typeName = primitiveType.toString();
-//            arrayCount = primitiveType.ge
         }
 
 
@@ -465,7 +461,6 @@ public class FirstAction extends AnAction {
         List<String> allParameterName = new LinkedList<>();
         if (parameters == null ){
             methodTemplate.append("(): ");
-
         }else{
             List<String> parametersList = new LinkedList<>();
             parameters.forEach(parameter -> {
@@ -524,11 +519,11 @@ public class FirstAction extends AnAction {
                                                 Expression target = assignExpr.getTarget();
                                                 if(target instanceof FieldAccessExpr){
                                                     // 含有this.
-
                                                 } else if(target instanceof NameExpr){
                                                     // 没有this 这种 情况一般是字段名和参数不一样，判断是不是真不一样
                                                     String targetString = target.toString();
-                                                    if(allParameterName.indexOf(targetString) == -1 && allFields.contains(targetString)){  // 不在参数之中,却在字段之中
+                                                    // 不在参数之中,却在字段之中
+                                                    if(allParameterName.indexOf(targetString) == -1 && allFields.contains(targetString)){
                                                         methodBNodyString = methodBNodyString.replace(targetString,"this."+targetString);
                                                     }
                                                 }
@@ -551,7 +546,11 @@ public class FirstAction extends AnAction {
 
     }
 
-
+    /**
+     * 获取日志窗口的textarea
+     * @param project
+     * @return
+     */
     public JTextArea getTextArea(Project project){
         ToolWindowManager toolWindowManager = ToolWindowManager.getInstance(project);
         ToolWindowImpl java_bean_to_ts_bean_result = (ToolWindowImpl)toolWindowManager.getToolWindow("java bean to ts bean result");
@@ -579,6 +578,10 @@ public class FirstAction extends AnAction {
         }
     }
 
+    /**
+     * 日志窗口输出转换完成
+     * @param project
+     */
     public void writeActionComplete(Project project){
         JTextArea textArea = getTextArea(project);
         textArea.append("\n");
@@ -603,8 +606,8 @@ public class FirstAction extends AnAction {
         }
     }
 
-    public static void main(String[] args) throws IOException, ParseException {
-/*
+    /*public static void main(String[] args) throws IOException, ParseException {
+
 //        String javaFilePath = "E:/diandaxia/common/src/main/java/com/diandaxia/common/sdk/taobao/TaobaoTradesSoldGetResponse.java";
 //            String javaFilePath = "E:/diandaxia/common/src/main/java/com/diandaxia/common/sdk/taobao/TaobaoTradesSoldGetRequest.java";
         String javaFilePath = "E:/diandaxia/common/src/main/java/com/diandaxia/common/sdk/demo/Order.java";
@@ -613,10 +616,10 @@ public class FirstAction extends AnAction {
 //        String javaFilePath = "E:/diandaxia/common/src/main/java/com/diandaxia/common/sdk/jingdong/bean/OrderSearchInfo.java";
 
         String savePath = "D:/lqq/test";
-        javaFileToTypescriptFile(javaFilePath, savePath,null);*/
+        javaFileToTypescriptFile(javaFilePath, savePath,null);
 
 
-    }
+    }*/
 
 
 }

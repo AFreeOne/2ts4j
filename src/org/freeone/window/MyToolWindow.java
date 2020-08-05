@@ -26,7 +26,7 @@ public class MyToolWindow  {
 
         init();
 
-        hideButton.addActionListener(e -> toolWindow.hide(null));
+//        hideButton.addActionListener(e -> toolWindow.hide(null));
     }
 
     private void init() {

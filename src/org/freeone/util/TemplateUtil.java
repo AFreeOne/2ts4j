@@ -277,6 +277,14 @@ public class TemplateUtil {
 
     }
 
+    /**
+     * 获取import模板
+     * @param currentJavaFielPath
+     * @param targetClassName
+     * @param packageString
+     * @param imports
+     * @return
+     */
     public static String  getImportInDifferentFolder(String currentJavaFielPath,String targetClassName,String packageString,List<ImportDeclaration> imports){
         // TODO 重置 有限考虑在import中
 //        if(imports.indexOf (packageString + "."+ targetClassName))

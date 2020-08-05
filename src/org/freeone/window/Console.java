@@ -7,6 +7,10 @@ import javax.swing.border.EmptyBorder;
 
 import java.awt.*;
 
+/**
+ * 自己使用eclipse window builder 工具写的窗口
+ */
+@Deprecated
 public class Console extends JFrame {
 
 	public JPanel contentPane;
@@ -26,8 +30,8 @@ public class Console extends JFrame {
  		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
  		setContentPane(contentPane);
  		contentPane.setLayout(new CardLayout(0, 0));
- 		
- 	 
+
+
  		textArea = new JTextArea();
  		textArea.setFont(new Font("微软雅黑", Font.PLAIN, 16));
  		textArea.setEditable(false);
@@ -36,7 +40,7 @@ public class Console extends JFrame {
  		textArea.setForeground(Color.WHITE);
  		textArea.setBackground(Color.BLACK);
  		JScrollPane scrollPane = new JScrollPane(textArea);
- 		 
+
  		scrollPane.setToolTipText("转换结果滚动面板");
  		scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
  		scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
@@ -55,10 +59,10 @@ public class Console extends JFrame {
          int y = (int)((screenSizeHeight-frameHeight)/2);
          this.setBounds(x,y,(int)frameWidth,(int)frameHeight);
      }
-     
+
      public void appendString(String string) {
     	textArea.append(string);
-     	textArea.setCaretPosition(textArea.getText().length()); 
+     	textArea.setCaretPosition(textArea.getText().length());
      	contentPane.repaint();
      }
      public void closeInSecond(int second){
@@ -72,13 +76,13 @@ public class Console extends JFrame {
 
     public static void main(String[] args) {
         Console console = new Console();
-       
+
         console.setVisible(true);
         console.center();
-        
+
         for (int i = 0; i < 1000; i++) {
         	console.textArea.append("> 在这里添加文本："+i+"\n");
-        	console.textArea.setCaretPosition(console.textArea.getText().length()); 
+        	console.textArea.setCaretPosition(console.textArea.getText().length());
         	console.contentPane.repaint();
         	try {
 				Thread.sleep(500);
@@ -87,7 +91,7 @@ public class Console extends JFrame {
 				e.printStackTrace();
 			}
 		}
-//        console.center();
+
 
     }
 

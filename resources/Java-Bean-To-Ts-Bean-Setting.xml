@@ -1,9 +1,0 @@
-<application>
-    <component name="JavaBeanToTsBeanSetting">
-        <option name="settingMap">
-            <map>
-                <entry key="folder" value="C:"/>
-            </map>
-        </option>
-    </component>
-</application>
