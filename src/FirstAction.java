@@ -115,7 +115,7 @@ public class FirstAction extends AnAction {
                             // 目标文件的路径，包含文件的名字了
                             String saveFileAbsolutePath = javaFilePath.replace(path, tsAbsolutePath);
                             String saveFolderPath = saveFileAbsolutePath.substring(0, saveFileAbsolutePath.lastIndexOf("/"));
-                            javaFileToTypescriptFile(javaFilePath, saveFolderPath, null);
+                            javaFileToTypescriptFile(javaFilePath, saveFolderPath, originFolder);
                             writeInfo(project, "源文件："+ javaFilePath);
                             writeInfo(project, "目标文件："+ saveFileAbsolutePath.replace(".java", ".ts"));
                         }
@@ -152,7 +152,7 @@ public class FirstAction extends AnAction {
                         // 相对路径
                         String relativePath = originJavaFileFolderPath.replace(originFolder, "");
                         String savePath = targetFolder + relativePath;
-                        javaFileToTypescriptFile(path,savePath,null);
+                        javaFileToTypescriptFile(path,savePath,originFolder);
                         writeInfo(project, "源文件："+ path);
                         writeInfo(project, "目标文件："+ path.replace(originFolder,targetFolder).replace(".java", ".ts"));
 
@@ -181,9 +181,9 @@ public class FirstAction extends AnAction {
      * java文件转typescrite文件
      * @param javaFilePath java文件的路径
      * @param savePath  保存路径，不需要包含文件的名字
-     * @param parentPath 父路径，传入此参数说明是将文件夹内的java文件全部转换成ts文件
+     * @param originFolder 映射路径
      */
-    public  void javaFileToTypescriptFile(String javaFilePath,String savePath,String parentPath ){
+    public  void javaFileToTypescriptFile(String javaFilePath,String savePath,String originFolder ){
         try {
 
             // 用于储存字段的名字和类型
@@ -243,7 +243,7 @@ public class FirstAction extends AnAction {
             // 不同路径引入
             javaTypeInMembers.forEach(javaTypeName ->{
                 if (javaClassHasImported.indexOf(javaTypeName) == -1){
-                    String importInDifferentFolder = TemplateUtil.getImportInDifferentFolder(javaFilePath, javaTypeName,  tempPackageString ,imports);
+                    String importInDifferentFolder = TemplateUtil.getImportInDifferentFolder(javaFilePath, javaTypeName,  tempPackageString ,imports,originFolder);
                     if(importInDifferentFolder != null){
                         javaClassHasImported.add(javaTypeName);
                         typeScriptFileContent.append(importInDifferentFolder);

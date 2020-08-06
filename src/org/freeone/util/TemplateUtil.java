@@ -292,9 +292,10 @@ public class TemplateUtil {
      * @param targetClassName
      * @param packageString
      * @param imports
+     * @param originFolder 映射路径
      * @return
      */
-    public static String getImportInDifferentFolder(String currentJavaFilePath, String targetClassName, String packageString, List<ImportDeclaration> imports) {
+    public static String getImportInDifferentFolder(String currentJavaFilePath, String targetClassName, String packageString, List<ImportDeclaration> imports,String originFolder) {
         // TODO 重置 有限考虑在import中
 //        if(imports.indexOf (packageString + "."+ targetClassName))
         boolean inImport = false;
@@ -326,7 +327,31 @@ public class TemplateUtil {
                         if (!inImport) {
                             return "import " + targetClassName + " = require(\"./" + targetClassName + "\");\n";
                         }
+                        // 剩下的都是在导入之中
                         // 需要引入的文件的层级
+                        // 当前文件夹应该是以subffixString的值结尾
+                        String suffixString = classFileKey.replace(".java", "").replace("/", ".");
+                        boolean rightClassFileKey = false;
+                        ImportDeclaration targetClassImport = null;
+                        for (ImportDeclaration anImport : imports) {
+                            String tempImportString = anImport.toString();
+                            tempImportString = tempImportString.replace("\n","").replace(";","");
+                            // com.diandaxia.common.sdk.taobao
+                            // com.diandaxia.common.sdk.douyin.bean.Order
+                            if(tempImportString.endsWith(targetClassName)  ){
+                                if( tempImportString.endsWith(suffixString)){
+                                    targetClassImport = anImport;
+                                    rightClassFileKey = true;
+                                    break;
+                                }
+
+                            }
+                        }
+
+                        if(!rightClassFileKey){
+                            continue;
+                        }
+
                         Integer targetClassLevel = fileRelativeLevel.get(classFileKey);
                         if (currentJavaFieLevel.intValue() == targetClassLevel.intValue()) {
                             // 不在import之中，却在文件夹中,层级相同，那么应该是在相同文件中
@@ -344,7 +369,8 @@ public class TemplateUtil {
 
 
                         } else if (currentJavaFieLevel > targetClassLevel) {
-
+                            // 当前文件在树的更里面
+                            // TODO 树的更里面需要怎么处理
                             StringBuilder returnString = new StringBuilder();
                             returnString.append("import ").append(targetClassName).append(" = require(\"");
                             // 层级差距
@@ -355,13 +381,21 @@ public class TemplateUtil {
                             returnString.append(targetClassName).append("\");\n");
                             return returnString.toString();
                         } else {
-                            // 当 当前文件的等级是1级时，第一个import不能是../
-
                             StringBuilder returnString = new StringBuilder();
                             returnString.append("import ").append(targetClassName).append(" = require(\"");
-                            // 层级差距
-                            int value = targetClassLevel - currentJavaFieLevel;
-                            if (currentJavaFieLevel == 1) {
+                            // 当 当前文件的等级是1级时，第一个import不能是../
+                            String targetClassImportString = targetClassImport.getName().toString();
+                            if(targetClassImportString.startsWith(packageString)){
+                                // targetClassImportString是当前文件的所在目录的子目录中
+                                returnString.append(".");
+                                returnString.append( targetClassImportString.replace(packageString+".","/").replace(".","/"));
+                                returnString.append("\");\n");
+                                return returnString.toString().replace("//", "/");
+                            }
+
+                                // 层级差距
+                                int value = targetClassLevel - currentJavaFieLevel;
+                            if (currentJavaFieLevel == 1){
                                 for (int i = 0; i < value; i++) {
                                     if (i == 0) {
                                         returnString.append("./");
@@ -369,18 +403,21 @@ public class TemplateUtil {
                                         returnString.append("../");
                                     }
                                 }
-                            } else {
+                            }else{
                                 for (int i = 0; i < value; i++) {
-                                    returnString.append("../");
+                                        returnString.append("../");
                                 }
                             }
 
 
-                            StringBuilder javaFilePath = new StringBuilder(classFileKey);
-                            javaFilePath.replace(javaFilePath.length() - 5, javaFilePath.length(), "");
-                            returnString.append(javaFilePath.toString());
-                            returnString.append("\");\n");
-                            return returnString.toString().replace("//", "/");
+
+
+                                StringBuilder javaFilePath = new StringBuilder(classFileKey);
+                                javaFilePath.replace(javaFilePath.length() - 5, javaFilePath.length(), "");
+                                returnString.append(javaFilePath.toString());
+                                returnString.append("\");\n");
+                                return returnString.toString().replace("//", "/");
+
 
 
                         }
