@@ -22,6 +22,7 @@ import japa.parser.ast.stmt.Statement;
 import japa.parser.ast.type.*;
 import org.freeone.setting.JBean2TsBeanComponent;
 import org.freeone.util.FolderUtil;
+import org.freeone.util.NotificationUtil;
 import org.freeone.util.TemplateUtil;
 import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
@@ -66,6 +67,10 @@ public class FirstAction extends AnAction {
         clearTextArea(project);
 
         VirtualFile[] virtualFiles = event.getData(PlatformDataKeys.VIRTUAL_FILE_ARRAY);
+        if(virtualFiles == null){
+            NotificationUtil.createNotification("无法获取文件或文件夹",NotificationUtil.ERROR);
+            return;
+        }
         for (VirtualFile data : virtualFiles) {
             String path = data.getPath();
             // 记录有没有转换过
@@ -129,7 +134,7 @@ public class FirstAction extends AnAction {
 
                         // 计算文件的层级，重要不可删除
                         List<String> filePaths = TemplateUtil.getAllJavaFile(originFolder, true);
-                        TemplateUtil.fileRelativeLevel.clear();
+                         TemplateUtil.fileRelativeLevel.clear();
                         for (String str:filePaths) {
 
                             str = str.replace("\\","/");

@@ -25,19 +25,19 @@ public class TemplateUtil {
     public static final String Origin_Folder = "originFolder";
     public static final String Target_Folder = "targetFolder";
 
-    public static Map<String,Integer> fileRelativeLevel = new LinkedHashMap<>();
+    public static Map<String, Integer> fileRelativeLevel = new LinkedHashMap<>();
 
-    public static Map<String,Integer> fileAbsoluteLevel = new LinkedHashMap<>();
+    public static Map<String, Integer> fileAbsoluteLevel = new LinkedHashMap<>();
 
-    static List<String> typesToNumber = Arrays.asList("int", "Integer", "byte", "Byte", "short", "Short", "long", "Long", "float", "Float", "double", "Double","BigDecimal");
-    static List<String> typesToString = Arrays.asList("String","StringBuilder","StringBuffer");
+    static List<String> typesToNumber = Arrays.asList("int", "Integer", "byte", "Byte", "short", "Short", "long", "Long", "float", "Float", "double", "Double", "BigDecimal");
+    static List<String> typesToString = Arrays.asList("String", "StringBuilder", "StringBuffer");
     static List<String> typesToBoolean = Arrays.asList("boolean", "Boolean");
     static List<String> typesToAny = Collections.singletonList("Object");
 
 
-
     /**
      * 获取java 数据类型，转ts数据类型
+     *
      * @param type java类型
      * @return type script 类型
      */
@@ -69,20 +69,20 @@ public class TemplateUtil {
             return list;
         }
         File[] files = baseFile.listFiles();
-        if (files == null){
+        if (files == null) {
             return list;
         }
         for (File file : files) {
             if (file.isDirectory()) {
                 if (isAddDirectory) {
                     String absolutePath = file.getAbsolutePath();
-                    list.add(absolutePath.replace("\\","/"));
+                    list.add(absolutePath.replace("\\", "/"));
                 }
                 list.addAll(getAllJavaFile(file.getAbsolutePath(), isAddDirectory));
             } else {
                 String absolutePath = file.getAbsolutePath();
                 if (absolutePath.endsWith(".java")) {
-                    list.add(absolutePath.replace("\\","/"));
+                    list.add(absolutePath.replace("\\", "/"));
                 }
             }
         }
@@ -91,6 +91,7 @@ public class TemplateUtil {
 
     /**
      * 获取members中所有的java类型
+     *
      * @param temMembers java类中的member
      */
     public static Set<String> getAllFieldJavaTypeInMembers(List<BodyDeclaration> temMembers) {
@@ -111,8 +112,9 @@ public class TemplateUtil {
 
     /**
      * 获取type中所有引用的java类型
+     *
      * @param type javatype
-     * @return  type中所有引用的java类型
+     * @return type中所有引用的java类型
      */
     public static Set<String> getJavaTypeNameSet(Type type) {
         Set<String> javaTypeNameSet = new HashSet<>();
@@ -121,7 +123,7 @@ public class TemplateUtil {
             String javaTypeName = primitiveType.toString();
             javaTypeNameSet.add(javaTypeName);
             return javaTypeNameSet;
-        } else if(type instanceof ClassOrInterfaceType){
+        } else if (type instanceof ClassOrInterfaceType) {
             ClassOrInterfaceType classOrInterfaceType = (ClassOrInterfaceType) type;
             List<Type> typeArgs = classOrInterfaceType.getTypeArgs();
 
@@ -134,7 +136,7 @@ public class TemplateUtil {
                 });
             }
             return javaTypeNameSet;
-        }else {
+        } else {
             ReferenceType referenceType = (ReferenceType) type;
             ClassOrInterfaceType classOrInterfaceType = (ClassOrInterfaceType) referenceType.getType();
             List<Type> typeArgs = classOrInterfaceType.getTypeArgs();
@@ -153,12 +155,13 @@ public class TemplateUtil {
 
     /**
      * 获取类的继承中的所使用到的java类
+     *
      * @param anExtends 继承部分
      * @return 继承部分java类的set
      */
-    public static Set<String> getJavaTypeInExtends(List<ClassOrInterfaceType> anExtends){
+    public static Set<String> getJavaTypeInExtends(List<ClassOrInterfaceType> anExtends) {
         Set<String> javaTypeSet = new HashSet<>();
-        if (anExtends == null || anExtends.isEmpty()){
+        if (anExtends == null || anExtends.isEmpty()) {
             return javaTypeSet;
         }
         for (ClassOrInterfaceType classOrInterfaceType : anExtends) {
@@ -166,8 +169,8 @@ public class TemplateUtil {
             javaTypeSet.add(name);
             // 如果继承中存在泛型
             List<Type> typeArgs = classOrInterfaceType.getTypeArgs();
-            if(typeArgs != null){
-                typeArgs.forEach(typeArg->{
+            if (typeArgs != null) {
+                typeArgs.forEach(typeArg -> {
                     Set<String> javaTypeNameSet = getJavaTypeNameSet(typeArg);
                     javaTypeSet.addAll(javaTypeNameSet);
                 });
@@ -179,11 +182,12 @@ public class TemplateUtil {
 
     /**
      * 获取泛型中的使用到java类
+     *
      * @param typeParameters 泛型部分
      */
-    public static Set<String> getJavaTypeInTypeParameters(List<TypeParameter> typeParameters){
+    public static Set<String> getJavaTypeInTypeParameters(List<TypeParameter> typeParameters) {
         Set<String> javaTypeSet = new HashSet<>();
-        if (typeParameters == null || typeParameters.isEmpty()){
+        if (typeParameters == null || typeParameters.isEmpty()) {
             return javaTypeSet;
         }
 
@@ -191,7 +195,7 @@ public class TemplateUtil {
             String name = typeParameter.getName();
             javaTypeSet.add(name);
             List<ClassOrInterfaceType> typeBound = typeParameter.getTypeBound();
-            if (typeBound != null){
+            if (typeBound != null) {
                 ClassOrInterfaceType classOrInterfaceType = typeBound.get(0);
                 Set<String> javaTypeNameSet = getJavaTypeNameSet(classOrInterfaceType);
                 javaTypeSet.addAll(javaTypeNameSet);
@@ -202,6 +206,7 @@ public class TemplateUtil {
 
     /**
      * 获取返回的类型
+     *
      * @param type java type
      */
     public static String getReturnType(Type type) {
@@ -231,16 +236,16 @@ public class TemplateUtil {
                 if ("Class".equals(classOrInterfaceType.getName())) {
 //                    returnType = getTypeScriptDataType(childReturnType + "|Function ");
                     returnType = getTypeScriptDataType(childReturnType + "");
-                } else if("List".equals(classOrInterfaceType.getName())) {
+                } else if ("List".equals(classOrInterfaceType.getName())) {
                     returnType = "Array<" + childReturnType + ">";
-                }else if("Map".equals(classOrInterfaceType.getName())){
+                } else if ("Map".equals(classOrInterfaceType.getName())) {
                     String keyType = TemplateUtil.getReturnType(typeArgs.get(0));
                     String valueType = TemplateUtil.getReturnType(typeArgs.get(1));
-                    returnType =  "Map<"+keyType+","+valueType+">";
-                }else if("Set".equals(classOrInterfaceType.getName())){
+                    returnType = "Map<" + keyType + "," + valueType + ">";
+                } else if ("Set".equals(classOrInterfaceType.getName())) {
                     String keyType = TemplateUtil.getReturnType(typeArgs.get(0));
-                    returnType =  "Set<"+keyType+">";
-                }else {
+                    returnType = "Set<" + keyType + ">";
+                } else {
                     returnType = "Array<" + childReturnType + ">";
                 }
             }
@@ -282,20 +287,21 @@ public class TemplateUtil {
 
     /**
      * 获取import模板
-     * @param currentJavaFielPath
+     *
+     * @param currentJavaFilePath
      * @param targetClassName
      * @param packageString
      * @param imports
      * @return
      */
-    public static String  getImportInDifferentFolder(String currentJavaFielPath,String targetClassName,String packageString,List<ImportDeclaration> imports){
+    public static String getImportInDifferentFolder(String currentJavaFilePath, String targetClassName, String packageString, List<ImportDeclaration> imports) {
         // TODO 重置 有限考虑在import中
 //        if(imports.indexOf (packageString + "."+ targetClassName))
         boolean inImport = false;
-        if (imports != null){
-            for (ImportDeclaration otherImport: imports) {
+        if (imports != null) {
+            for (ImportDeclaration otherImport : imports) {
                 String otherImportString = otherImport.toString();
-                if(otherImportString.contains("."+targetClassName)){
+                if (otherImportString.contains("." + targetClassName)) {
                     inImport = true;
                     break;
                 }
@@ -303,44 +309,41 @@ public class TemplateUtil {
         }
 
 
-
-
-
         Set<String> keySet = fileRelativeLevel.keySet();
 
 
-        for (String key: keySet) {
+        for (String key : keySet) {
 
-            if(currentJavaFielPath.contains(key)){
+            if (currentJavaFilePath.contains(key)) {
                 // 当前java文件的层级
                 Integer currentJavaFieLevel = fileRelativeLevel.get(key);
 
-                for (String classFileKey: keySet) {
+                for (String classFileKey : keySet) {
                     // 存在多个文件名相同的情况下使用，由于一个文件夹不会存在同名文件，不用担心Key重复
 
-                    if(classFileKey.contains("/"+targetClassName+".java")){
+                    if (classFileKey.contains("/" + targetClassName + ".java")) {
                         // 不在import之中，却在文件夹中,层级相同，那么应该是在相同文件中
-                        if (!inImport){
-                            return "import "+ targetClassName+" = require(\"./"+targetClassName+"\");\n";
+                        if (!inImport) {
+                            return "import " + targetClassName + " = require(\"./" + targetClassName + "\");\n";
                         }
                         // 需要引入的文件的层级
                         Integer targetClassLevel = fileRelativeLevel.get(classFileKey);
-                        if(currentJavaFieLevel.intValue() == targetClassLevel.intValue()){
+                        if (currentJavaFieLevel.intValue() == targetClassLevel.intValue()) {
                             // 不在import之中，却在文件夹中,层级相同，那么应该是在相同文件中
 
-                                // 在import中，却需要导入那么就是其他文件夹，只是层级一样
-                                StringBuilder returnString = new StringBuilder();
-                                returnString.append("import ").append(targetClassName).append(" = require(\"");
-                                // 进入根目录
-                                for (int i = 0; i < currentJavaFieLevel - 1 ; i++) {
-                                    returnString.append("../");
-                                }
-                                returnString.append(classFileKey.replace(".java", ""));
-                                returnString.append("\");\n");
-                                return returnString.toString().replace("//", "/");
+                            // 在import中，却需要导入那么就是其他文件夹，只是层级一样
+                            StringBuilder returnString = new StringBuilder();
+                            returnString.append("import ").append(targetClassName).append(" = require(\"");
+                            // 进入根目录
+                            for (int i = 0; i < currentJavaFieLevel - 1; i++) {
+                                returnString.append("../");
+                            }
+                            returnString.append(classFileKey.replace(".java", ""));
+                            returnString.append("\");\n");
+                            return returnString.toString().replace("//", "/");
 
 
-                        }else if(currentJavaFieLevel > targetClassLevel){
+                        } else if (currentJavaFieLevel > targetClassLevel) {
 
                             StringBuilder returnString = new StringBuilder();
                             returnString.append("import ").append(targetClassName).append(" = require(\"");
@@ -351,53 +354,64 @@ public class TemplateUtil {
                             }
                             returnString.append(targetClassName).append("\");\n");
                             return returnString.toString();
-                        }else {
+                        } else {
+                            // 当 当前文件的等级是1级时，第一个import不能是../
+
                             StringBuilder returnString = new StringBuilder();
                             returnString.append("import ").append(targetClassName).append(" = require(\"");
                             // 层级差距
                             int value = targetClassLevel - currentJavaFieLevel;
-                            for (int i = 0; i < value; i++) {
-                                returnString.append("../");
+                            if (currentJavaFieLevel == 1) {
+                                for (int i = 0; i < value; i++) {
+                                    if (i == 0) {
+                                        returnString.append("./");
+                                    } else {
+                                        returnString.append("../");
+                                    }
+                                }
+                            } else {
+                                for (int i = 0; i < value; i++) {
+                                    returnString.append("../");
+                                }
                             }
+
+
                             StringBuilder javaFilePath = new StringBuilder(classFileKey);
-                            javaFilePath.replace(javaFilePath.length()-5,javaFilePath.length(),"");
+                            javaFilePath.replace(javaFilePath.length() - 5, javaFilePath.length(), "");
                             returnString.append(javaFilePath.toString());
                             returnString.append("\");\n");
-
                             return returnString.toString().replace("//", "/");
+
+
                         }
                     }
-
-
-
-
-
 
 
                 }
             }
 
         }
-        return  null;
+        return null;
     }
 
     /**
      * 获取构造方法字符串
-     * @param fieldMap 字段键值对，key是字段的名称，value是字段的类型
+     *
+     * @param fieldMap  字段键值对，key是字段的名称，value是字段的类型
      * @param isExtends 是否是继承
      * @return 构造方法字符串
      */
-    public static String getConstructorTemplate(Map<String,String> fieldMap,boolean isExtends){
+    public static String getConstructorTemplate(Map<String, String> fieldMap, boolean isExtends) {
         StringBuilder constructorTemplate = new StringBuilder();
         constructorTemplate.append("    constructor(");
         List<String> parameterStrList = new LinkedList<>();
         for (Map.Entry<String, String> entry : fieldMap.entrySet()) {
-            parameterStrList.add(entry.getKey()+"?: " + entry.getValue());
+            parameterStrList.add(entry.getKey() + "?: " + entry.getValue());
         }
         String join = String.join(", ", parameterStrList);
         constructorTemplate.append(join);
         constructorTemplate.append(") {\n");
-        if (isExtends){
+        if (isExtends) {
             constructorTemplate.append("super();\n");
         }
 
@@ -410,16 +424,17 @@ public class TemplateUtil {
 
     /**
      * 获取一个文件选择描述器
-     * @param title 标题
+     *
+     * @param title       标题
      * @param description 描述
      * @return FileChooserDescriptor
      */
-    public static FileChooserDescriptor createFileChooserDescriptor(String title ,String description){
+    public static FileChooserDescriptor createFileChooserDescriptor(String title, String description) {
         FileChooserDescriptor singleFolderDescriptor = FileChooserDescriptorFactory.createSingleFolderDescriptor();
-        if (title != null){
+        if (title != null) {
             singleFolderDescriptor.setTitle(title);
         }
-        if (description != null){
+        if (description != null) {
             singleFolderDescriptor.setDescription(description);
         }
         return singleFolderDescriptor;
@@ -427,12 +442,13 @@ public class TemplateUtil {
 
     /**
      * 转换成键值对，键是源文件夹 ，值是目标文件夹
+     *
      * @param folderMappingList 配置文件中的映射list，包含数显竖线的
      * @return 转换之后的键值对
      */
-    public static Map<String,String> convertToFolderMap(List<String> folderMappingList){
-        Map<String,String> folderMap = new LinkedHashMap<>();
-        if (folderMappingList == null || folderMappingList.isEmpty()){
+    public static Map<String, String> convertToFolderMap(List<String> folderMappingList) {
+        Map<String, String> folderMap = new LinkedHashMap<>();
+        if (folderMappingList == null || folderMappingList.isEmpty()) {
             return folderMap;
         }
         for (String folderMapping : folderMappingList) {
@@ -447,6 +463,7 @@ public class TemplateUtil {
 
     /**
      * 字符串工具
+     *
      * @param str 目标字符串
      * @param sub 需要匹配的字符串
      * @return 匹配次数
@@ -455,7 +472,7 @@ public class TemplateUtil {
         if (!isEmpty(str) && !isEmpty(sub)) {
             int count = 0;
 
-            for(int idx = 0; (idx = indexOf(str, sub, idx)) != -1; idx += sub.length()) {
+            for (int idx = 0; (idx = indexOf(str, sub, idx)) != -1; idx += sub.length()) {
                 ++count;
             }
 
