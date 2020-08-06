@@ -1,7 +1,7 @@
 <idea-plugin url="https://github.com/AFreeOne">
     <id>org.freeone.2ts4j</id>
     <name>java bean to ts bean</name>
-    <version>0.0.6</version>
+    <version>0.0.7</version>
     <vendor email="1357441309@qq.com" url="https://github.com/AFreeOne">LiQingQing</vendor>
 
     <description>
@@ -9,8 +9,9 @@
     </description>
 
     <change-notes>
-        2020.08.01 0.0.5 add description &lt;br/&gt;
-        2020.08.01 0.0.5 add folder mapping to setting &lt;br/&gt;
+        0.0.7 fix some problems &lt;br/&gt;
+        0.0.6 add folder mapping to setting &lt;br/&gt;
+        0.0.5 add description &lt;br/&gt;
     </change-notes>
     <idea-version since-build="173.0"/>
     <depends>com.intellij.modules.platform</depends>
