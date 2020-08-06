@@ -67,4 +67,16 @@ public class TbResponseFieldEntity {
         this.description = description;
         return this;
     }
+
+    @Override
+    public String toString() {
+        return "TbResponseFieldEntity{" +
+                "id=" + id +
+                ", fieldName='" + fieldName + '\'' +
+                ", fieldType='" + fieldType + '\'' +
+                ", pid=" + pid +
+                ", description='" + description + '\'' +
+                ", responseFieldList=" + responseFieldList +
+                '}';
+    }
 }

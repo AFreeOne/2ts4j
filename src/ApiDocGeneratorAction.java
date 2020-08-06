@@ -116,8 +116,11 @@ public class ApiDocGeneratorAction extends AnAction {
                 JavadocComment javaDoc = javaType.getJavaDoc();
                 // java类的名字
                 String name = javaType.getName();
-
                 tbResponseClassEntity.setPackagePath(aPackage.getName().toString()).setClassName(name) .setDescription(javaDoc == null ? null : javaDoc.toString()).setPlatform(platform);
+                List<BodyDeclaration> members = javaType.getMembers();
+                if (members != null && !members.isEmpty()){
+                    TemplateUtil.getResponseFieldListFromMembers(members);
+                }
 
 
                 return tbResponseClassEntity;
@@ -129,15 +132,14 @@ public class ApiDocGeneratorAction extends AnAction {
         } catch (ParseException | IOException e) {
             e.printStackTrace();
         }
-
         return null;
     }
 
     public static void main(String[] args) {
-        String path = "E:\\diandaxia\\common\\src\\main\\java\\com\\diandaxia\\common\\sdk\\pinduoduo\\PddOrderListGetRequest.java";
+        String path = "E:\\diandaxia\\common\\src\\main\\java\\com\\diandaxia\\common\\sdk\\pinduoduo\\PddOrderListGetResponse.java";
         path = path.replace("\\", "/");
 
 
-        ApiDocGeneratorAction.parseJavaRequestFileToServer(path);
+        ApiDocGeneratorAction.parseJavaResponseFileToServer(path);
     }
 }

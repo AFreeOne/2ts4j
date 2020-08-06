@@ -88,4 +88,18 @@ public class TbResponseClassEntity {
         this.requestClassId = requestClassId;
         return this;
     }
+
+    @Override
+    public String toString() {
+        return "TbResponseClassEntity{" +
+                "id=" + id +
+                ", className='" + className + '\'' +
+                ", packagePath='" + packagePath + '\'' +
+                ", description='" + description + '\'' +
+                ", createTime=" + createTime +
+                ", updateTime=" + updateTime +
+                ", requestClassId=" + requestClassId +
+                ", platform='" + platform + '\'' +
+                '}';
+    }
 }

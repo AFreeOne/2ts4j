@@ -14,6 +14,7 @@ import japa.parser.ast.type.PrimitiveType;
 import japa.parser.ast.type.ReferenceType;
 import japa.parser.ast.type.Type;
 import org.freeone.apidoc.entity.TbRequestFieldEntity;
+import org.freeone.apidoc.entity.TbResponseFieldEntity;
 
 
 import java.io.File;
@@ -36,6 +37,10 @@ public class TemplateUtil {
     static List<String> typesToString = Arrays.asList("String", "StringBuilder", "StringBuffer");
     static List<String> typesToBoolean = Arrays.asList("boolean", "Boolean");
     static List<String> typesToAny = Collections.singletonList("Object");
+    /**
+     * 原样输出
+     */
+    static List<String> sourceType = Arrays.asList("Date","String","Integer","int","Boolean","boolean", "byte", "Byte", "short", "Short", "long", "Long", "float", "Float", "double", "Double", "BigDecimal");
 
 
 
@@ -517,12 +522,7 @@ public class TemplateUtil {
                 if (annotations != null && !annotations.isEmpty()){
                     annotations.forEach(annotation ->{
                         String name = annotation.getName().getName();
-                        if ("NotNull".equals(name) || "NotBlank".equals(name)){
-                            requestField.setRequired(true);
-                        }else{
-                            requestField.setRequired(false);
-                        }
-
+                        requestField.setRequired("NotNull".equals(name) || "NotBlank".equals(name));
                     });
                 }
                 JavadocComment javaDoc = field.getJavaDoc();
@@ -536,6 +536,29 @@ public class TemplateUtil {
 
         return fieldList;
     }
+
+    public static void getResponseFieldListFromMembers(List<BodyDeclaration> members){
+        List<TbResponseFieldEntity> responseFieldList = new ArrayList<>();
+        members.forEach(member ->{
+            if(member instanceof FieldDeclaration){
+                TbResponseFieldEntity responseFieldEntity = new TbResponseFieldEntity();
+                FieldDeclaration field = (FieldDeclaration) member;
+                System.err.println(field);
+                String fieldName = field.getVariables().get(0).getId().getName();
+                responseFieldEntity.setFieldName(fieldName);
+                String fileTypeString = field.getType().toString();
+                if (sourceType.indexOf(fieldName) == -1){
+                    // TODO 不知名的类，判断import，查找类
+
+                }else{
+                    responseFieldEntity.setFieldType(fileTypeString);
+                }
+                System.err.println(1);
+            }
+        });
+    }
+
+
 
 
     //--------------------------------------------------
