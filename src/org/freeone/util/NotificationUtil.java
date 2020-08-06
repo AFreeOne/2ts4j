@@ -7,7 +7,9 @@ import com.intellij.notification.*;
  */
 public class NotificationUtil {
 
-    private static NotificationGroup notificationGroup = new NotificationGroup("notificationGroup", NotificationDisplayType.BALLOON, true);
+    private static NotificationGroup notificationGroupBalloon = new NotificationGroup("notificationGroup", NotificationDisplayType.BALLOON, true);
+
+    private static NotificationGroup notificationGroupStickyBalloon = new NotificationGroup("notificationGroup", NotificationDisplayType.STICKY_BALLOON, true);
 
     public static final String INFORMATION = "INFORMATION";
 
@@ -23,14 +25,28 @@ public class NotificationUtil {
     public static void createNotification(String content, String type) {
         Notification notification = null;
         if (INFORMATION.equals(type)) {
-            notification = notificationGroup.createNotification(content, NotificationType.INFORMATION);
+            notification = notificationGroupBalloon.createNotification(content, NotificationType.INFORMATION);
         } else if (WARNING.equals(type)) {
-            notification = notificationGroup.createNotification(content, NotificationType.WARNING);
+            notification = notificationGroupBalloon.createNotification(content, NotificationType.WARNING);
         } else {
-            notification = notificationGroup.createNotification(content, NotificationType.ERROR);
+            notification = notificationGroupBalloon.createNotification(content, NotificationType.ERROR);
         }
         Notifications.Bus.notify(notification);
     }
+
+    public static void createStickyNotification (String content, String type) {
+        Notification notification = null;
+        if (INFORMATION.equals(type)) {
+            notification = notificationGroupStickyBalloon.createNotification(content, NotificationType.INFORMATION);
+        } else if (WARNING.equals(type)) {
+            notification = notificationGroupStickyBalloon.createNotification(content, NotificationType.WARNING);
+        } else {
+            notification = notificationGroupStickyBalloon.createNotification(content, NotificationType.ERROR);
+        }
+        Notifications.Bus.notify(notification);
+    }
+
+
 
 
 }

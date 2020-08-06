@@ -15,39 +15,55 @@ public class TbRequestFieldEntity {
         return id;
     }
 
-    public void setId(Integer id) {
+    public TbRequestFieldEntity setId(Integer id) {
         this.id = id;
+        return this;
     }
 
     public String getFieldName() {
         return fieldName;
     }
 
-    public void setFieldName(String fieldName) {
+    public TbRequestFieldEntity setFieldName(String fieldName) {
         this.fieldName = fieldName;
+        return this;
     }
 
     public Boolean getRequired() {
         return required;
     }
 
-    public void setRequired(Boolean required) {
+    public TbRequestFieldEntity setRequired(Boolean required) {
         this.required = required;
+        return this;
     }
 
     public Integer getRequestClassId() {
         return requestClassId;
     }
 
-    public void setRequestClassId(Integer requestClassId) {
+    public TbRequestFieldEntity setRequestClassId(Integer requestClassId) {
         this.requestClassId = requestClassId;
+        return this;
     }
 
     public String getDescription() {
         return description;
     }
 
-    public void setDescription(String description) {
+    public TbRequestFieldEntity setDescription(String description) {
         this.description = description;
+        return this;
+    }
+
+    @Override
+    public String toString() {
+        return "TbRequestFieldEntity{" +
+                "id=" + id +
+                ", fieldName='" + fieldName + '\'' +
+                ", required=" + required +
+                ", requestClassId=" + requestClassId +
+                ", description='" + description + '\'' +
+                '}';
     }
 }

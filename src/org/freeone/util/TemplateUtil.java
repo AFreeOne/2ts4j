@@ -6,11 +6,14 @@ import japa.parser.ast.ImportDeclaration;
 import japa.parser.ast.TypeParameter;
 import japa.parser.ast.body.BodyDeclaration;
 import japa.parser.ast.body.FieldDeclaration;
+import japa.parser.ast.body.JavadocComment;
 import japa.parser.ast.body.VariableDeclarator;
+import japa.parser.ast.expr.AnnotationExpr;
 import japa.parser.ast.type.ClassOrInterfaceType;
 import japa.parser.ast.type.PrimitiveType;
 import japa.parser.ast.type.ReferenceType;
 import japa.parser.ast.type.Type;
+import org.freeone.apidoc.entity.TbRequestFieldEntity;
 
 
 import java.io.File;
@@ -33,6 +36,8 @@ public class TemplateUtil {
     static List<String> typesToString = Arrays.asList("String", "StringBuilder", "StringBuffer");
     static List<String> typesToBoolean = Arrays.asList("boolean", "Boolean");
     static List<String> typesToAny = Collections.singletonList("Object");
+
+
 
 
     /**
@@ -287,13 +292,12 @@ public class TemplateUtil {
 
     /**
      * 获取import模板
-     *
-     * @param currentJavaFilePath
-     * @param targetClassName
-     * @param packageString
-     * @param imports
+     * @param currentJavaFilePath 当前java文件的路径
+     * @param targetClassName 目标类
+     * @param packageString 当前累的package声明
+     * @param imports 当前类的所有import
      * @param originFolder 映射路径
-     * @return
+     * @return String
      */
     public static String getImportInDifferentFolder(String currentJavaFilePath, String targetClassName, String packageString, List<ImportDeclaration> imports,String originFolder) {
         // TODO 重置 有限考虑在import中
@@ -493,6 +497,44 @@ public class TemplateUtil {
             folderMap.put(folders[0], folders[1]);
         }
         return folderMap;
+    }
+
+    /**
+     * 通过分析members获取类中的请求字段
+     * @param members 类中的member
+     * @return List<TbRequestFieldEntity>
+     */
+    public static List<TbRequestFieldEntity> getRequestFieldListFromMembers(List<BodyDeclaration> members){
+        List<TbRequestFieldEntity> fieldList = new ArrayList<>();
+        members.forEach(member ->{
+
+            if(member instanceof FieldDeclaration){
+                TbRequestFieldEntity requestField = new TbRequestFieldEntity();
+                FieldDeclaration field = (FieldDeclaration) member;
+                String fieldName = field.getVariables().get(0).getId().getName();
+                requestField.setFieldName(fieldName);
+                List<AnnotationExpr> annotations = field.getAnnotations();
+                if (annotations != null && !annotations.isEmpty()){
+                    annotations.forEach(annotation ->{
+                        String name = annotation.getName().getName();
+                        if ("NotNull".equals(name) || "NotBlank".equals(name)){
+                            requestField.setRequired(true);
+                        }else{
+                            requestField.setRequired(false);
+                        }
+
+                    });
+                }
+                JavadocComment javaDoc = field.getJavaDoc();
+                if (javaDoc != null){
+                    String content = javaDoc.getContent();
+                    requestField.setDescription(content);
+                }
+                fieldList.add(requestField);
+            }
+        });
+
+        return fieldList;
     }
 
 
