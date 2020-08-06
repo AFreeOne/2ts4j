@@ -26,6 +26,9 @@ public class TemplateUtil {
     public static final String Target_Folder = "targetFolder";
 
     public static Map<String,Integer> fileRelativeLevel = new LinkedHashMap<>();
+
+    public static Map<String,Integer> fileAbsoluteLevel = new LinkedHashMap<>();
+
     static List<String> typesToNumber = Arrays.asList("int", "Integer", "byte", "Byte", "short", "Short", "long", "Long", "float", "Float", "double", "Double","BigDecimal");
     static List<String> typesToString = Arrays.asList("String","StringBuilder","StringBuffer");
     static List<String> typesToBoolean = Arrays.asList("boolean", "Boolean");
