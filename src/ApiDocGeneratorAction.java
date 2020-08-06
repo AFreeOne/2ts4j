@@ -11,9 +11,10 @@ import japa.parser.ast.body.BodyDeclaration;
 import japa.parser.ast.body.ClassOrInterfaceDeclaration;
 import japa.parser.ast.body.JavadocComment;
 import japa.parser.ast.body.TypeDeclaration;
-import org.bouncycastle.cert.ocsp.Req;
 import org.freeone.apidoc.entity.TbRequestClassEntity;
 import org.freeone.apidoc.entity.TbRequestFieldEntity;
+import org.freeone.apidoc.entity.TbResponseClassEntity;
+import org.freeone.apidoc.entity.TbResponseFieldEntity;
 import org.freeone.util.NotificationUtil;
 import org.freeone.util.PlatformUtil;
 import org.freeone.util.TemplateUtil;
@@ -21,7 +22,6 @@ import org.freeone.util.TemplateUtil;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-import java.util.Set;
 
 public class ApiDocGeneratorAction extends AnAction {
     Project project = null;
@@ -43,7 +43,10 @@ public class ApiDocGeneratorAction extends AnAction {
                 for (String javaFilePath : allJavaFilePath) {
                     if (javaFilePath.endsWith("Request.java")) {
                         System.err.println(javaFilePath);
-                        parseJavaFileToServer(javaFilePath);
+                        TbRequestClassEntity requestClassEntity = parseJavaRequestFileToServer(javaFilePath);
+
+                    }else if(javaFilePath.endsWith("Response.java")){
+
                     }
                 }
             }
@@ -52,7 +55,7 @@ public class ApiDocGeneratorAction extends AnAction {
 
     }
 
-    public static void parseJavaFileToServer(String path) {
+    public static TbRequestClassEntity parseJavaRequestFileToServer(String path) {
         try {
             TbRequestClassEntity requestClassEntity = new TbRequestClassEntity();
             File javaFile = new File(path);
@@ -64,7 +67,7 @@ public class ApiDocGeneratorAction extends AnAction {
 
             if (platform == null) {
                 NotificationUtil.createStickyNotification(path.substring(path.lastIndexOf("/") + 1, path.length()) + "无法识别平台", NotificationUtil.ERROR);
-                return;
+                return null;
             }
             if (types != null && !types.isEmpty()) {
                 ClassOrInterfaceDeclaration javaType = (ClassOrInterfaceDeclaration) types.get(0);
@@ -78,6 +81,7 @@ public class ApiDocGeneratorAction extends AnAction {
                 List<TbRequestFieldEntity> fieldList = TemplateUtil.getRequestFieldListFromMembers(members);
                 requestClassEntity.setRequestFieldList(fieldList);
                 System.err.println(requestClassEntity);
+                return requestClassEntity;
             } else {
                 NotificationUtil.createStickyNotification(path.substring(path.lastIndexOf("/") + 1, path.length()) + "无法识别类", NotificationUtil.ERROR);
             }
@@ -85,6 +89,48 @@ public class ApiDocGeneratorAction extends AnAction {
             e.printStackTrace();
         }
 
+        return null;
+    }
+
+    /**
+     * 解析ResponseFile
+     * @param path ResponseFile的路径
+     * @return TbResponseClassEntity
+     */
+    public static TbResponseClassEntity parseJavaResponseFileToServer(String path){
+        TbResponseClassEntity tbResponseClassEntity = new TbResponseClassEntity();
+        File javaFile = new File(path);
+        CompilationUnit parse = null;
+        try {
+            parse = JavaParser.parse(javaFile, "utf-8");
+            List<TypeDeclaration> types = parse.getTypes();
+            PackageDeclaration aPackage = parse.getPackage();
+            String platform = PlatformUtil.getPlatform(aPackage);
+            if (platform == null) {
+                NotificationUtil.createStickyNotification(path.substring(path.lastIndexOf("/") + 1, path.length()) + "无法识别平台", NotificationUtil.ERROR);
+                return null;
+            }
+            if (types != null && !types.isEmpty()) {
+                ClassOrInterfaceDeclaration javaType = (ClassOrInterfaceDeclaration) types.get(0);
+                // 获取java类的注释
+                JavadocComment javaDoc = javaType.getJavaDoc();
+                // java类的名字
+                String name = javaType.getName();
+
+                tbResponseClassEntity.setPackagePath(aPackage.getName().toString()).setClassName(name) .setDescription(javaDoc == null ? null : javaDoc.toString()).setPlatform(platform);
+
+
+                return tbResponseClassEntity;
+            } else {
+                NotificationUtil.createStickyNotification(path.substring(path.lastIndexOf("/") + 1, path.length()) + "无法识别类", NotificationUtil.ERROR);
+            }
+
+
+        } catch (ParseException | IOException e) {
+            e.printStackTrace();
+        }
+
+        return null;
     }
 
     public static void main(String[] args) {
@@ -92,6 +138,6 @@ public class ApiDocGeneratorAction extends AnAction {
         path = path.replace("\\", "/");
 
 
-        ApiDocGeneratorAction.parseJavaFileToServer(path);
+        ApiDocGeneratorAction.parseJavaRequestFileToServer(path);
     }
 }

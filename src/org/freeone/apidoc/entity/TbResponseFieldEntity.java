@@ -1,5 +1,7 @@
 package org.freeone.apidoc.entity;
 
+import java.util.List;
+
 public class TbResponseFieldEntity {
     private Integer id;
 
@@ -11,43 +13,58 @@ public class TbResponseFieldEntity {
 
     private String description;
 
+    private List<TbResponseFieldEntity> responseFieldList;
+
+    public List<TbResponseFieldEntity> getResponseFieldList() {
+        return responseFieldList;
+    }
+
+    public void setResponseFieldList(List<TbResponseFieldEntity> responseFieldList) {
+        this.responseFieldList = responseFieldList;
+    }
+
     public Integer getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public TbResponseFieldEntity setId(Integer id) {
         this.id = id;
+        return this;
     }
 
     public String getFieldName() {
         return fieldName;
     }
 
-    public void setFieldName(String fieldName) {
+    public TbResponseFieldEntity setFieldName(String fieldName) {
         this.fieldName = fieldName;
+        return this;
     }
 
     public String getFieldType() {
         return fieldType;
     }
 
-    public void setFieldType(String fieldType) {
+    public TbResponseFieldEntity setFieldType(String fieldType) {
         this.fieldType = fieldType;
+        return this;
     }
 
     public Integer getPid() {
         return pid;
     }
 
-    public void setPid(Integer pid) {
+    public TbResponseFieldEntity setPid(Integer pid) {
         this.pid = pid;
+        return this;
     }
 
     public String getDescription() {
         return description;
     }
 
-    public void setDescription(String description) {
+    public TbResponseFieldEntity setDescription(String description) {
         this.description = description;
+        return this;
     }
 }
