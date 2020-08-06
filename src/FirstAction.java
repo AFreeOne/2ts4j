@@ -354,7 +354,7 @@ public class FirstAction extends AnAction {
         List<VariableDeclarator> variables = field.getVariables();
         VariableDeclarator variable = variables.get(0);
         String name = variable.getId().getName();
-        fieldTemplate.append(name + ": ");
+        fieldTemplate.append(name).append(": ");
         // 字段类型
         String typeName = "";
         int arrayCount = 0;
@@ -373,7 +373,7 @@ public class FirstAction extends AnAction {
 
         // arrayCount == 1 是数组[]
         if (arrayCount == 1){
-            fieldTemplate.append("Array<"+ TemplateUtil.getTypeScriptDataType(typeName)+">;\n");
+            fieldTemplate.append("Array<").append(TemplateUtil.getTypeScriptDataType(typeName)).append(">;\n");
             fieldMap.put(name,"Array<"+ TemplateUtil.getTypeScriptDataType(typeName)+">");
         }else if(arrayCount == 0){
             // 可能是List，也是能是基础数据类型
@@ -392,18 +392,18 @@ public class FirstAction extends AnAction {
 
             }else if("Map".equals(typeName)){
                 List<Type> typeArgs = classOrInterfaceType.getTypeArgs();
-                if(classOrInterfaceType != null){
+                if(typeArgs != null){
                     String keyType = TemplateUtil.getReturnType(typeArgs.get(0));
                     String valueType = TemplateUtil.getReturnType(typeArgs.get(1));
-                    fieldTemplate.append("Map<"+keyType+","+valueType+">");
+                    fieldTemplate.append("Map<").append(keyType).append(",").append(valueType).append(">");
                     fieldTemplate.append(";\n");
                     fieldMap.put(name,"Map<"+keyType+","+valueType+">");
                 }
             }else if("Set".equals(typeName)) {
                 List<Type> typeArgs = classOrInterfaceType.getTypeArgs();
-                if(classOrInterfaceType != null){
+                if(typeArgs != null){
                     String keyType = TemplateUtil.getReturnType(typeArgs.get(0));
-                    fieldTemplate.append("Set<"+keyType+">");
+                    fieldTemplate.append("Set<").append(keyType).append(">");
                     fieldTemplate.append(";\n");
                     fieldMap.put(name,"Set<"+keyType+">");
                 }
@@ -428,7 +428,7 @@ public class FirstAction extends AnAction {
         // 注释
         JavadocComment javaDoc = method.getJavaDoc();
         if (javaDoc != null){
-            methodTemplate.append("    "+javaDoc.toString());
+            methodTemplate.append("    ").append(javaDoc.toString());
         }
         // 字段权限
         int modifiers = method.getModifiers();
