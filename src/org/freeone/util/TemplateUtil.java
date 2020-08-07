@@ -668,9 +668,6 @@ public class TemplateUtil {
         return TemplateUtil.getResponseFieldListFromMembers(members, replace);
     }
 
-
-
-
     //--------------------------------------------------
 
     /**

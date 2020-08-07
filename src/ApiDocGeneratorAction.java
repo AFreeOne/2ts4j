@@ -159,17 +159,10 @@ public class ApiDocGeneratorAction extends AnAction {
         HttpPost httpPost = new HttpPost("http://127.0.0.1:8080/accept");
         httpPost.setHeader("Content-Type", "application/json;charset=utf8");
 
-
-
-
-
         TbRequestClassEntity requestClassEntity = parseJavaRequestFileToServer(reqpath);
         DataBody dataBody = new DataBody();
-
         dataBody.setRequestClass(requestClassEntity);
         dataBody.setResponseClass(tbResponseClassEntity);
-
-
         String s = objectMapper.writeValueAsString(dataBody);
         StringEntity stringEntity = new StringEntity(s, "UTF-8");
         httpPost.setEntity(stringEntity);
@@ -201,8 +194,5 @@ public class ApiDocGeneratorAction extends AnAction {
                 e.printStackTrace();
             }
         }
-
-
-
     }
 }
