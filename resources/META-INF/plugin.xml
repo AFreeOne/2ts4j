@@ -1,7 +1,7 @@
 <idea-plugin url="https://github.com/AFreeOne">
     <id>org.freeone.2ts4j</id>
     <name>java bean to ts bean</name>
-    <version>0.0.7</version>
+    <version>0.0.8</version>
     <vendor email="1357441309@qq.com" url="https://github.com/AFreeOne">LiQingQing</vendor>
 
     <description>
@@ -9,12 +9,15 @@
     </description>
 
     <change-notes>
+        0.0.8 add add java module declaration
         0.0.7 fix some problems &lt;br/&gt;
         0.0.6 add folder mapping to setting &lt;br/&gt;
         0.0.5 add description &lt;br/&gt;
     </change-notes>
     <idea-version since-build="173.0"/>
+    <depends>com.intellij.modules.java</depends>
     <depends>com.intellij.modules.platform</depends>
+
     <extensions defaultExtensionNs="com.intellij">
         <toolWindow id="java bean to ts bean result" anchor="bottom"
                     factoryClass="org.freeone.window.MyToolWindowFactory"/>
@@ -26,10 +29,10 @@
         <action id="FirstAction" class="FirstAction" text="java bean to ts bean" description="java bean to ts bean">
             <add-to-group group-id="ProjectViewPopupMenuModifyGroup" anchor="after" relative-to-action="$Delete"/>
         </action>
-        <action id="ApiDocGeneratorAction" class="ApiDocGeneratorAction" text="ApiDocGeneratorAction"
+       <!-- <action id="ApiDocGeneratorAction" class="ApiDocGeneratorAction" text="ApiDocGeneratorAction"
                 description="ApiDocGeneratorAction">
             <add-to-group group-id="ProjectViewPopupMenuModifyGroup" anchor="after" relative-to-action="$Delete"/>
-        </action>
+        </action>-->
     </actions>
 
 </idea-plugin>
