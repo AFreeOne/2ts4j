@@ -287,7 +287,7 @@ public class FirstAction extends AnAction {
                 List<ClassOrInterfaceType> anExtends = javaClass.getExtends();
                 if (anExtends != null){
                     String extendsString = anExtends.get(0).toString();
-                    typeScriptFileContent.append(" extends "+ extendsString);
+                    typeScriptFileContent.append(" extends ").append(extendsString);
                 }
 
 

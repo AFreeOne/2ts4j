@@ -1,3 +1,5 @@
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
@@ -11,10 +13,16 @@ import japa.parser.ast.body.BodyDeclaration;
 import japa.parser.ast.body.ClassOrInterfaceDeclaration;
 import japa.parser.ast.body.JavadocComment;
 import japa.parser.ast.body.TypeDeclaration;
-import org.freeone.apidoc.entity.TbRequestClassEntity;
-import org.freeone.apidoc.entity.TbRequestFieldEntity;
-import org.freeone.apidoc.entity.TbResponseClassEntity;
-import org.freeone.apidoc.entity.TbResponseFieldEntity;
+import org.apache.commons.httpclient.HttpClient;
+import org.apache.http.HttpEntity;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.util.EntityUtils;
+import org.freeone.apidoc.entity.*;
 import org.freeone.util.NotificationUtil;
 import org.freeone.util.PlatformUtil;
 import org.freeone.util.TemplateUtil;
@@ -30,12 +38,12 @@ public class ApiDocGeneratorAction extends AnAction {
     public void actionPerformed(AnActionEvent e) {
         // TODO: insert action logic here
         this.project = e.getProject();
-        VirtualFile[] datas = e.getData(PlatformDataKeys.VIRTUAL_FILE_ARRAY);
-        if (datas == null || datas.length == 0) {
+        VirtualFile[] virtualFiles = e.getData(PlatformDataKeys.VIRTUAL_FILE_ARRAY);
+        if (virtualFiles == null || virtualFiles.length == 0) {
             NotificationUtil.createNotification("无法获取文件或文件夹", NotificationUtil.ERROR);
             return;
         }
-        for (VirtualFile virtualFile : datas) {
+        for (VirtualFile virtualFile : virtualFiles) {
             if (virtualFile.isDirectory()) {
                 // 如果是一个文件夹
                 String path = virtualFile.getPath();
@@ -56,6 +64,7 @@ public class ApiDocGeneratorAction extends AnAction {
     }
 
     public static TbRequestClassEntity parseJavaRequestFileToServer(String path) {
+        path = path.replace("\\","/");
         try {
             TbRequestClassEntity requestClassEntity = new TbRequestClassEntity();
             File javaFile = new File(path);
@@ -98,6 +107,7 @@ public class ApiDocGeneratorAction extends AnAction {
      * @return TbResponseClassEntity
      */
     public static TbResponseClassEntity parseJavaResponseFileToServer(String path){
+        path = path.replace("\\","/");
         TbResponseClassEntity tbResponseClassEntity = new TbResponseClassEntity();
         File javaFile = new File(path);
         CompilationUnit parse = null;
@@ -119,7 +129,10 @@ public class ApiDocGeneratorAction extends AnAction {
                 tbResponseClassEntity.setPackagePath(aPackage.getName().toString()).setClassName(name) .setDescription(javaDoc == null ? null : javaDoc.toString()).setPlatform(platform);
                 List<BodyDeclaration> members = javaType.getMembers();
                 if (members != null && !members.isEmpty()){
-                    TemplateUtil.getResponseFieldListFromMembers(members);
+                    String fileName = javaFile.getName();
+                    String replace = path.replace("/" + fileName, "");
+                    List<TbResponseFieldEntity> responseFieldListFromMembers = TemplateUtil.getResponseFieldListFromMembers(members, replace);
+                    tbResponseClassEntity.setResponseFieldList(responseFieldListFromMembers);
                 }
 
 
@@ -135,11 +148,61 @@ public class ApiDocGeneratorAction extends AnAction {
         return null;
     }
 
-    public static void main(String[] args) {
-        String path = "E:\\diandaxia\\common\\src\\main\\java\\com\\diandaxia\\common\\sdk\\pinduoduo\\PddOrderListGetResponse.java";
-        path = path.replace("\\", "/");
+    public static void main(String[] args) throws JsonProcessingException {
+        String reqpath = "E:\\diandaxia\\common\\src\\main\\java\\com\\diandaxia\\common\\sdk\\pinduoduo\\PddOrderListGetRequest.java";
+        String respath = "E:\\diandaxia\\common\\src\\main\\java\\com\\diandaxia\\common\\sdk\\pinduoduo\\PddOrderListGetResponse.java";
+        reqpath = reqpath.replace("\\", "/");
+        TbResponseClassEntity tbResponseClassEntity = ApiDocGeneratorAction.parseJavaResponseFileToServer(respath);
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        CloseableHttpClient httpClient = HttpClientBuilder.create().build();
+        HttpPost httpPost = new HttpPost("http://127.0.0.1:8080/accept");
+        httpPost.setHeader("Content-Type", "application/json;charset=utf8");
 
 
-        ApiDocGeneratorAction.parseJavaResponseFileToServer(path);
+
+
+
+        TbRequestClassEntity requestClassEntity = parseJavaRequestFileToServer(reqpath);
+        DataBody dataBody = new DataBody();
+
+        dataBody.setRequestClass(requestClassEntity);
+        dataBody.setResponseClass(tbResponseClassEntity);
+
+
+        String s = objectMapper.writeValueAsString(dataBody);
+        StringEntity stringEntity = new StringEntity(s, "UTF-8");
+        httpPost.setEntity(stringEntity);
+        // 响应模型
+        CloseableHttpResponse response = null;
+        try {
+            // 由客户端执行(发送)Post请求
+            response = httpClient.execute(httpPost);
+            // 从响应模型中获取响应实体
+            HttpEntity responseEntity = response.getEntity();
+
+            System.out.println("响应状态为:" + response.getStatusLine());
+            if (responseEntity != null) {
+                System.out.println("响应内容长度为:" + responseEntity.getContentLength());
+                System.out.println("响应内容为:" + EntityUtils.toString(responseEntity));
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                // 释放资源
+                if (httpClient != null) {
+                    httpClient.close();
+                }
+                if (response != null) {
+                    response.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+
+
     }
 }

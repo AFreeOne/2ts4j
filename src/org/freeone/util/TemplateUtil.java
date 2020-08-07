@@ -2,6 +2,9 @@ package org.freeone.util;
 
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
+import japa.parser.JavaParser;
+import japa.parser.ParseException;
+import japa.parser.ast.CompilationUnit;
 import japa.parser.ast.ImportDeclaration;
 import japa.parser.ast.TypeParameter;
 import japa.parser.ast.body.BodyDeclaration;
@@ -18,6 +21,7 @@ import org.freeone.apidoc.entity.TbResponseFieldEntity;
 
 
 import java.io.File;
+import java.io.IOException;
 import java.util.*;
 
 /**
@@ -537,7 +541,13 @@ public class TemplateUtil {
         return fieldList;
     }
 
-    public static void getResponseFieldListFromMembers(List<BodyDeclaration> members){
+    /**
+     * 从members中获取字段
+     * @param members 类的成员
+     * @param currentJavaFileFolderPath 当前java文件所在文件夹的路径
+     * @return
+     */
+    public static List<TbResponseFieldEntity> getResponseFieldListFromMembers(List<BodyDeclaration> members, String currentJavaFileFolderPath){
         List<TbResponseFieldEntity> responseFieldList = new ArrayList<>();
         members.forEach(member ->{
             if(member instanceof FieldDeclaration){
@@ -546,16 +556,116 @@ public class TemplateUtil {
                 System.err.println(field);
                 String fieldName = field.getVariables().get(0).getId().getName();
                 responseFieldEntity.setFieldName(fieldName);
-                String fileTypeString = field.getType().toString();
-                if (sourceType.indexOf(fieldName) == -1){
-                    // TODO 不知名的类，判断import，查找类
-
+                String fieldTypeString = field.getType().toString();
+                if(field.getType() instanceof PrimitiveType){
+                    // 基本数据类型 直接放进去
+                    responseFieldEntity.setFieldType(fieldTypeString);
                 }else{
-                    responseFieldEntity.setFieldType(fileTypeString);
+                    // 引用数据类型
+                    if (!sourceType.contains(fieldTypeString)){
+                        // TODO 不知名的类，判断import，查找类
+                        ReferenceType fieldType = (ReferenceType) field.getType();
+                        int arrayCount = fieldType.getArrayCount();
+                        if(arrayCount == 1){
+                            //
+                            if(fieldType.getType() instanceof PrimitiveType){
+                                responseFieldEntity.setFieldType(fieldTypeString);
+                            }else{
+                                {
+                                    ClassOrInterfaceType classOrInterfaceType = (ClassOrInterfaceType) fieldType.getType();
+                                    String name = classOrInterfaceType.getName();
+                                    fieldTypeString = name;
+                                    if(fieldTypeString.equals("List")){
+                                        fieldTypeString = getReturnType(classOrInterfaceType.getTypeArgs().get(0));
+                                        responseFieldEntity.setFieldType("Object[]");
+                                    }else{
+                                        responseFieldEntity.setFieldType("Object");
+                                    }
+                                    List<String> allJavaFileInCurrentFolder = getAllJavaFile(currentJavaFileFolderPath, false);
+                                    String javaFilePathOfFieldType = null;
+                                    for (String s : allJavaFileInCurrentFolder) {
+                                        if (s.endsWith(fieldTypeString+".java")){
+                                            javaFilePathOfFieldType = s;
+                                            break;
+                                        }
+                                    }
+                                    if (javaFilePathOfFieldType == null){
+                                        NotificationUtil.createStickyNotification(fieldTypeString+".java无法找到",NotificationUtil.ERROR);
+                                    }else{
+                                        try {
+                                            List<TbResponseFieldEntity> nodeFieldList = getNodeFieldList(javaFilePathOfFieldType);
+                                            responseFieldEntity.setNodeFieldList(nodeFieldList);
+                                        } catch (IOException | ParseException e) {
+                                            e.printStackTrace();
+                                        }
+
+                                    }
+                                }
+                            }
+
+                        }else{
+                            ClassOrInterfaceType classOrInterfaceType = (ClassOrInterfaceType) fieldType.getType();
+                            String name = classOrInterfaceType.getName();
+                            fieldTypeString = name;
+                            if(fieldTypeString.equals("List")){
+                                fieldTypeString = getReturnType(classOrInterfaceType.getTypeArgs().get(0));
+                                responseFieldEntity.setFieldType("Object[]");
+                            }else{
+                                responseFieldEntity.setFieldType("Object");
+                            }
+                            List<String> allJavaFileInCurrentFolder = getAllJavaFile(currentJavaFileFolderPath, false);
+                            String javaFilePathOfFieldType = null;
+                            for (String s : allJavaFileInCurrentFolder) {
+                                if (s.endsWith(fieldTypeString+".java")){
+                                    javaFilePathOfFieldType = s;
+                                    break;
+                                }
+                            }
+                            if (javaFilePathOfFieldType == null){
+                                NotificationUtil.createStickyNotification(fieldTypeString+".java无法找到",NotificationUtil.ERROR);
+                            }else{
+                                try {
+                                    List<TbResponseFieldEntity> nodeFieldList = getNodeFieldList(javaFilePathOfFieldType);
+                                    responseFieldEntity.setNodeFieldList(nodeFieldList);
+                                } catch (IOException | ParseException e) {
+                                    e.printStackTrace();
+                                }
+
+                            }
+                        }
+
+
+
+
+                    }else{
+                        responseFieldEntity.setFieldType(fieldTypeString);
+                    }
                 }
-                System.err.println(1);
+
+
+//                System.err.println(currentJavaFileFolderPath);
+
+                responseFieldList.add(responseFieldEntity);
             }
         });
+
+        return responseFieldList;
+    }
+
+    /**
+     * 获取子节点的字段
+     * @param javaFilePathOfFieldType 字段的类型的所属的java文件的路径
+     * @return
+     * @throws IOException
+     * @throws ParseException
+     */
+    public static List<TbResponseFieldEntity> getNodeFieldList(String javaFilePathOfFieldType) throws IOException, ParseException {
+        File fieldFile = new File(javaFilePathOfFieldType);
+        CompilationUnit parse = JavaParser.parse(fieldFile, "utf-8");
+        String name = parse.getTypes().get(0).getName();
+        List<BodyDeclaration> members = parse.getTypes().get(0).getMembers();
+        String replace = javaFilePathOfFieldType.replace("/" + name + ".java", "");
+        return TemplateUtil.getResponseFieldListFromMembers(members, replace);
     }
 
 

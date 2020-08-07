@@ -1,6 +1,7 @@
 package org.freeone.apidoc.entity;
 
 import java.util.Date;
+import java.util.List;
 
 public class TbResponseClassEntity {
     private Integer id;
@@ -18,6 +19,16 @@ public class TbResponseClassEntity {
     private Integer requestClassId;
 
     private String platform;
+
+    private List<TbResponseFieldEntity> responseFieldList;
+
+    public List<TbResponseFieldEntity> getResponseFieldList() {
+        return responseFieldList;
+    }
+
+    public void setResponseFieldList(List<TbResponseFieldEntity> responseFieldList) {
+        this.responseFieldList = responseFieldList;
+    }
 
     public String getPlatform() {
         return platform;

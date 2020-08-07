@@ -1,5 +1,6 @@
 package org.freeone.apidoc.entity;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class TbResponseFieldEntity {
@@ -13,14 +14,14 @@ public class TbResponseFieldEntity {
 
     private String description;
 
-    private List<TbResponseFieldEntity> responseFieldList;
+    private List<TbResponseFieldEntity> nodeFieldList = new ArrayList<>();
 
-    public List<TbResponseFieldEntity> getResponseFieldList() {
-        return responseFieldList;
+    public List<TbResponseFieldEntity> getNodeFieldList() {
+        return nodeFieldList;
     }
 
-    public void setResponseFieldList(List<TbResponseFieldEntity> responseFieldList) {
-        this.responseFieldList = responseFieldList;
+    public void setNodeFieldList(List<TbResponseFieldEntity> nodeFieldList) {
+        this.nodeFieldList = nodeFieldList;
     }
 
     public Integer getId() {
@@ -76,7 +77,7 @@ public class TbResponseFieldEntity {
                 ", fieldType='" + fieldType + '\'' +
                 ", pid=" + pid +
                 ", description='" + description + '\'' +
-                ", responseFieldList=" + responseFieldList +
+                ", nodeFieldList=" + nodeFieldList +
                 '}';
     }
 }
