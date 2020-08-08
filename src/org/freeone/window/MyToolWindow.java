@@ -43,6 +43,7 @@ public class MyToolWindow  {
         textArea.setLineWrap(true);
 
 
+
         myToolWindowContent = new JScrollPane(textArea);
 //        myToolWindowContent.add(datetimeLabel);
 //        myToolWindowContent.add(hideButton);

@@ -18,7 +18,7 @@ public class LogPanelUtil {
      * @param project 当前项目
      * @return  JTextArea
      */
-    public JTextArea getTextArea(Project project){
+    public  static JTextArea getTextArea(Project project){
         ToolWindowManager toolWindowManager = ToolWindowManager.getInstance(project);
         ToolWindow java_bean_to_ts_bean_result = (ToolWindow)toolWindowManager.getToolWindow("java bean to ts bean result");
         boolean visible = java_bean_to_ts_bean_result.isVisible();
@@ -36,7 +36,7 @@ public class LogPanelUtil {
      * 清理日志信息
      * @param project 当前项目
      */
-    public void clearTextArea(Project project){
+    public static void clearTextArea(Project project){
         try {
             JTextArea textArea = getTextArea(project);
             textArea.setText("");
@@ -49,7 +49,7 @@ public class LogPanelUtil {
      * 日志窗口输出转换完成
      * @param project 当前项目
      */
-    public void writeActionComplete(Project project){
+    public static void writeActionComplete(Project project){
         JTextArea textArea = getTextArea(project);
         textArea.append("\n");
         textArea.append("========== 转 换 完 成 ==========");
@@ -61,7 +61,7 @@ public class LogPanelUtil {
      * @param project 当前项目
      * @param info 字符串
      */
-    public void writeInfo(Project project,String info){
+    public static void writeInfo(Project project,String info){
         try {
             JTextArea textArea = getTextArea(project);
             textArea.append("\n");

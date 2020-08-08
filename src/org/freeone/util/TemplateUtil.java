@@ -553,7 +553,7 @@ public class TemplateUtil {
             if(member instanceof FieldDeclaration){
                 TbResponseFieldEntity responseFieldEntity = new TbResponseFieldEntity();
                 FieldDeclaration field = (FieldDeclaration) member;
-                System.err.println(field);
+
                 String fieldName = field.getVariables().get(0).getId().getName();
                 responseFieldEntity.setFieldName(fieldName);
                 String fieldTypeString = field.getType().toString();
@@ -643,7 +643,7 @@ public class TemplateUtil {
                 }
 
 
-//                System.err.println(currentJavaFileFolderPath);
+
 
                 responseFieldList.add(responseFieldEntity);
             }

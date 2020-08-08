@@ -23,6 +23,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 import org.freeone.apidoc.entity.*;
+import org.freeone.util.LogPanelUtil;
 import org.freeone.util.NotificationUtil;
 import org.freeone.util.PlatformUtil;
 import org.freeone.util.TemplateUtil;
@@ -32,7 +33,7 @@ import java.io.IOException;
 import java.util.List;
 
 public class ApiDocGeneratorAction extends AnAction {
-    Project project = null;
+    static  Project project = null;
 
     @Override
     public void actionPerformed(AnActionEvent e) {
@@ -50,11 +51,32 @@ public class ApiDocGeneratorAction extends AnAction {
                 List<String> allJavaFilePath = TemplateUtil.getAllJavaFile(path, false);
                 for (String javaFilePath : allJavaFilePath) {
                     if (javaFilePath.endsWith("Request.java")) {
-                        System.err.println(javaFilePath);
+
                         TbRequestClassEntity requestClassEntity = parseJavaRequestFileToServer(javaFilePath);
+                        String responseFilePath = javaFilePath.replace("Request.java", "Response.java");
+                        TbResponseClassEntity tbResponseClassEntity = parseJavaResponseFileToServer(responseFilePath);
+                        if(null == requestClassEntity){
+                            continue;
+                        }
+                        if(tbResponseClassEntity == null){
+                            LogPanelUtil.writeInfo(project,requestClassEntity.getClassName()+"没有响应类，将跳过解析");
+                            continue;
+                        }
+                        if(tbResponseClassEntity.getResponseFieldList() == null || tbResponseClassEntity.getResponseFieldList().isEmpty() ){
+                            NotificationUtil.createNotification(requestClassEntity.getClassName()+"没有响应字段，请及时补充",NotificationUtil.WARNING);
+                        }
 
-                    }else if(javaFilePath.endsWith("Response.java")){
 
+
+                        DataBody dataBody = new DataBody();
+                        dataBody.setRequestClass(requestClassEntity);
+                        dataBody.setResponseClass(tbResponseClassEntity);
+                        try {
+                            commitToServer(dataBody);
+                        } catch (JsonProcessingException jsonProcessingException) {
+                            jsonProcessingException.printStackTrace();
+
+                        }
                     }
                 }
             }
@@ -75,6 +97,7 @@ public class ApiDocGeneratorAction extends AnAction {
             String platform = PlatformUtil.getPlatform(aPackage);
 
             if (platform == null) {
+                LogPanelUtil.writeInfo(project,path.substring(path.lastIndexOf("/") + 1, path.length()) + "无法识别平台");
                 NotificationUtil.createStickyNotification(path.substring(path.lastIndexOf("/") + 1, path.length()) + "无法识别平台", NotificationUtil.ERROR);
                 return null;
             }
@@ -89,10 +112,11 @@ public class ApiDocGeneratorAction extends AnAction {
                 List<BodyDeclaration> members = javaType.getMembers();
                 List<TbRequestFieldEntity> fieldList = TemplateUtil.getRequestFieldListFromMembers(members);
                 requestClassEntity.setRequestFieldList(fieldList);
-                System.err.println(requestClassEntity);
+
                 return requestClassEntity;
             } else {
-                NotificationUtil.createStickyNotification(path.substring(path.lastIndexOf("/") + 1, path.length()) + "无法识别类", NotificationUtil.ERROR);
+                LogPanelUtil.writeInfo(project,path.substring(path.lastIndexOf("/") + 1, path.length()) + "无法识别类");
+//                NotificationUtil.createStickyNotification(path.substring(path.lastIndexOf("/") + 1, path.length()) + "无法识别类", NotificationUtil.ERROR);
             }
         } catch (ParseException | IOException e) {
             e.printStackTrace();
@@ -135,7 +159,6 @@ public class ApiDocGeneratorAction extends AnAction {
                     tbResponseClassEntity.setResponseFieldList(responseFieldListFromMembers);
                 }
 
-
                 return tbResponseClassEntity;
             } else {
                 NotificationUtil.createStickyNotification(path.substring(path.lastIndexOf("/") + 1, path.length()) + "无法识别类", NotificationUtil.ERROR);
@@ -148,7 +171,57 @@ public class ApiDocGeneratorAction extends AnAction {
         return null;
     }
 
-    public static void main(String[] args) throws JsonProcessingException {
+    public static void commitToServer(DataBody dataBody ) throws JsonProcessingException {
+
+        HttpPost httpPost = new HttpPost("http://127.0.0.1:8080/accept");
+        CloseableHttpClient httpClient = HttpClientBuilder.create().build();
+        httpPost.setHeader("Content-Type", "application/json;charset=utf8");
+        ObjectMapper objectMapper = new ObjectMapper();
+        String s = objectMapper.writeValueAsString(dataBody);
+        StringEntity stringEntity = new StringEntity(s, "UTF-8");
+        httpPost.setEntity(stringEntity);
+        // 响应模型
+        CloseableHttpResponse response = null;
+        try {
+            // 由客户端执行(发送)Post请求
+            response = httpClient.execute(httpPost);
+            // 从响应模型中获取响应实体
+            HttpEntity responseEntity = response.getEntity();
+
+            System.out.println("响应状态为:" + response.getStatusLine());
+
+            LogPanelUtil.writeInfo(project,"提交: " +dataBody.getRequestClass().getClassName() + " & " +dataBody.getResponseClass().getClassName() );
+            LogPanelUtil.writeInfo(project,"响应状态为: " +response.getStatusLine());
+            LogPanelUtil.writeInfo(project,"响应内容为: " +EntityUtils.toString(responseEntity));
+
+
+            /*if(response.getStatusLine().getStatusCode() == 500){
+                LogPanelUtil.writeInfo(project,"服务器异常");
+            }else if(response.getStatusLine().getStatusCode() == 200){
+                if (responseEntity != null) {
+//                    System.out.println("响应内容长度为:" + responseEntity.getContentLength());
+                    System.out.println("响应内容为:" + EntityUtils.toString(responseEntity));
+                }
+            }*/
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                // 释放资源
+                if (httpClient != null) {
+                    httpClient.close();
+                }
+                if (response != null) {
+                    response.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    /*public static void main(String[] args) throws JsonProcessingException {
         String reqpath = "E:\\diandaxia\\common\\src\\main\\java\\com\\diandaxia\\common\\sdk\\pinduoduo\\PddOrderListGetRequest.java";
         String respath = "E:\\diandaxia\\common\\src\\main\\java\\com\\diandaxia\\common\\sdk\\pinduoduo\\PddOrderListGetResponse.java";
         reqpath = reqpath.replace("\\", "/");
@@ -175,6 +248,9 @@ public class ApiDocGeneratorAction extends AnAction {
             HttpEntity responseEntity = response.getEntity();
 
             System.out.println("响应状态为:" + response.getStatusLine());
+            if(response.getStatusLine().getStatusCode()==500){
+
+            }
             if (responseEntity != null) {
                 System.out.println("响应内容长度为:" + responseEntity.getContentLength());
                 System.out.println("响应内容为:" + EntityUtils.toString(responseEntity));
@@ -194,5 +270,5 @@ public class ApiDocGeneratorAction extends AnAction {
                 e.printStackTrace();
             }
         }
-    }
+    }*/
 }

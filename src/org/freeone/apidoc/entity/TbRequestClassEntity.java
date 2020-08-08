@@ -4,6 +4,7 @@ import java.util.Date;
 import java.util.List;
 
 public class TbRequestClassEntity {
+
     private Integer id;
 
     private String className;
@@ -17,6 +18,16 @@ public class TbRequestClassEntity {
     private Date updateTime;
 
     private String platform;
+
+    private String fieldType;
+
+    public String getFieldType() {
+        return fieldType;
+    }
+
+    public void setFieldType(String fieldType) {
+        this.fieldType = fieldType;
+    }
 
     List<TbRequestFieldEntity> requestFieldList;
 
