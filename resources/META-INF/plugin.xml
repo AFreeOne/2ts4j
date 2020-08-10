@@ -29,7 +29,7 @@
         <action id="FirstAction" class="FirstAction" text="java bean to ts bean" description="java bean to ts bean">
             <add-to-group group-id="ProjectViewPopupMenuModifyGroup" anchor="after" relative-to-action="$Delete"/>
         </action>
-        <action id="ApiDocGeneratorAction" class="ApiDocGeneratorAction" text="ApiDocGeneratorAction"
+        <action id="ApiDocGeneratorAction" class="ApiDocGeneratorAction" text="解析文档"
                 description="ApiDocGeneratorAction">
             <add-to-group group-id="ProjectViewPopupMenuModifyGroup" anchor="after" relative-to-action="$Delete"/>
         </action>
