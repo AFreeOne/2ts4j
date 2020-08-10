@@ -27,6 +27,8 @@ public class JBean2TsBeanComponent implements PersistentStateComponent<JBean2TsB
     @Deprecated
     private LinkedHashMap<String,String> folderMap ;
 
+    private Map<String, String> apidocMap ;
+
 
     public static JBean2TsBeanComponent getInstance() {
         JBean2TsBeanComponent jBean2TsBeanComponentService = ServiceManager.getService(JBean2TsBeanComponent.class);
@@ -48,6 +50,10 @@ public class JBean2TsBeanComponent implements PersistentStateComponent<JBean2TsB
             folderMap = new LinkedHashMap();
         }
 
+        if (apidocMap == null){
+            apidocMap = new HashMap<>();
+        }
+
     }
     @Nullable
     @Override
@@ -63,9 +69,11 @@ public class JBean2TsBeanComponent implements PersistentStateComponent<JBean2TsB
         Map<String, String> settingMap = state.getSettingMap();
         List<String> folderList = state.getFolderMappingList();
         LinkedHashMap<String, String> folderMap = state.getFolderMap();
+        Map<String, String> apidocMap = state.getApidocMap();
         setSettingMap(settingMap);
         setFolderMappingList(folderList);
         setFolderMap(folderMap);
+        setApidocMap(apidocMap);
     }
 
     public Map<String, String> getSettingMap() {
@@ -91,5 +99,13 @@ public class JBean2TsBeanComponent implements PersistentStateComponent<JBean2TsB
 
     public void setFolderMappingList(List<String> folderMappingList) {
         this.folderMappingList = folderMappingList;
+    }
+
+    public Map<String, String> getApidocMap() {
+        return apidocMap;
+    }
+
+    public void setApidocMap(Map<String, String> apidocMap) {
+        this.apidocMap = apidocMap;
     }
 }

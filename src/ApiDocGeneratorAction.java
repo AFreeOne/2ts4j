@@ -4,6 +4,7 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vfs.VirtualFile;
 import japa.parser.JavaParser;
 import japa.parser.ParseException;
@@ -23,6 +24,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 import org.freeone.apidoc.entity.*;
+import org.freeone.setting.JBean2TsBeanComponent;
 import org.freeone.util.LogPanelUtil;
 import org.freeone.util.NotificationUtil;
 import org.freeone.util.PlatformUtil;
@@ -31,14 +33,41 @@ import org.freeone.util.TemplateUtil;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 public class ApiDocGeneratorAction extends AnAction {
     static  Project project = null;
+
+    static String serverPathValue = null;
+
+    static String jwtValue = null;
 
     @Override
     public void actionPerformed(AnActionEvent e) {
         // TODO: insert action logic here
         this.project = e.getProject();
+
+        JBean2TsBeanComponent instance = JBean2TsBeanComponent.getInstance();
+        Map<String, String> apidocMap = instance.getApidocMap();
+        if (apidocMap == null){
+            Messages.showErrorDialog("无法获取相关配置", "异常操作");
+            return;
+        }
+
+        String serverPath1 = apidocMap.get("serverPath");
+        if(serverPath1 == null || "".equals(serverPath1)){
+            Messages.showWarningDialog("请先设置服务器的接口路径", "提示");
+            return;
+        }
+        ApiDocGeneratorAction.serverPathValue = serverPath1;
+        String jwt = apidocMap.get("jwt");
+        if (jwt == null || "".equals(jwt)){
+            Messages.showWarningDialog("请先设置jwt认证参数", "提示");
+            return;
+        }
+        ApiDocGeneratorAction.jwtValue = jwt;
+
+
         VirtualFile[] virtualFiles = e.getData(PlatformDataKeys.VIRTUAL_FILE_ARRAY);
         if (virtualFiles == null || virtualFiles.length == 0) {
             NotificationUtil.createNotification("无法获取文件或文件夹", NotificationUtil.ERROR);
@@ -51,7 +80,6 @@ public class ApiDocGeneratorAction extends AnAction {
                 List<String> allJavaFilePath = TemplateUtil.getAllJavaFile(path, false);
                 for (String javaFilePath : allJavaFilePath) {
                     if (javaFilePath.endsWith("Request.java")) {
-
                         TbRequestClassEntity requestClassEntity = parseJavaRequestFileToServer(javaFilePath);
                         String responseFilePath = javaFilePath.replace("Request.java", "Response.java");
                         TbResponseClassEntity tbResponseClassEntity = parseJavaResponseFileToServer(responseFilePath);
@@ -65,8 +93,6 @@ public class ApiDocGeneratorAction extends AnAction {
                         if(tbResponseClassEntity.getResponseFieldList() == null || tbResponseClassEntity.getResponseFieldList().isEmpty() ){
                             NotificationUtil.createNotification(requestClassEntity.getClassName()+"没有响应字段，请及时补充",NotificationUtil.WARNING);
                         }
-
-
 
                         DataBody dataBody = new DataBody();
                         dataBody.setRequestClass(requestClassEntity);
@@ -95,7 +121,6 @@ public class ApiDocGeneratorAction extends AnAction {
             List<TypeDeclaration> types = parse.getTypes();
             PackageDeclaration aPackage = parse.getPackage();
             String platform = PlatformUtil.getPlatform(aPackage);
-
             if (platform == null) {
                 LogPanelUtil.writeInfo(project,path.substring(path.lastIndexOf("/") + 1, path.length()) + "无法识别平台");
                 NotificationUtil.createStickyNotification(path.substring(path.lastIndexOf("/") + 1, path.length()) + "无法识别平台", NotificationUtil.ERROR);
@@ -108,11 +133,9 @@ public class ApiDocGeneratorAction extends AnAction {
                 // java类的名字
                 String name = javaType.getName();
                 requestClassEntity.setPackagePath(aPackage.getName().toString()).setClassName(name).setDescription(javaDoc == null ? null : javaDoc.toString()).setPlatform(platform);
-
                 List<BodyDeclaration> members = javaType.getMembers();
                 List<TbRequestFieldEntity> fieldList = TemplateUtil.getRequestFieldListFromMembers(members);
                 requestClassEntity.setRequestFieldList(fieldList);
-
                 return requestClassEntity;
             } else {
                 LogPanelUtil.writeInfo(project,path.substring(path.lastIndexOf("/") + 1, path.length()) + "无法识别类");
@@ -173,9 +196,10 @@ public class ApiDocGeneratorAction extends AnAction {
 
     public static void commitToServer(DataBody dataBody ) throws JsonProcessingException {
 
-        HttpPost httpPost = new HttpPost("http://127.0.0.1:8080/accept");
+        HttpPost httpPost = new HttpPost(serverPathValue);
         CloseableHttpClient httpClient = HttpClientBuilder.create().build();
         httpPost.setHeader("Content-Type", "application/json;charset=utf8");
+        httpPost.addHeader("Authorization",jwtValue);
         ObjectMapper objectMapper = new ObjectMapper();
         String s = objectMapper.writeValueAsString(dataBody);
         StringEntity stringEntity = new StringEntity(s, "UTF-8");
@@ -189,11 +213,13 @@ public class ApiDocGeneratorAction extends AnAction {
             HttpEntity responseEntity = response.getEntity();
 
             System.out.println("响应状态为:" + response.getStatusLine());
-
+            String toString = EntityUtils.toString(responseEntity);
+            System.out.println(toString);
+            LogPanelUtil.writeInfo(project,"-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
             LogPanelUtil.writeInfo(project,"提交: " +dataBody.getRequestClass().getClassName() + " & " +dataBody.getResponseClass().getClassName() );
-            LogPanelUtil.writeInfo(project,"响应状态为: " +response.getStatusLine());
-            LogPanelUtil.writeInfo(project,"响应内容为: " +EntityUtils.toString(responseEntity));
-
+//            LogPanelUtil.writeInfo(project,"响应状态为: " +response.getStatusLine());
+            LogPanelUtil.writeInfo(project,"响应内容为: " + toString);
+            LogPanelUtil.writeInfo(project,"-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
 
             /*if(response.getStatusLine().getStatusCode() == 500){
                 LogPanelUtil.writeInfo(project,"服务器异常");
@@ -205,6 +231,7 @@ public class ApiDocGeneratorAction extends AnAction {
             }*/
 
         } catch (IOException e) {
+            LogPanelUtil.writeInfo(project,e.getClass().getName() +": " + e.getLocalizedMessage());
             e.printStackTrace();
         } finally {
             try {
