@@ -11,6 +11,18 @@ public class TbRequestFieldEntity {
 
     private String description;
 
+    public String getFieldType() {
+        return fieldType;
+    }
+
+    public void setFieldType(String fieldType) {
+        this.fieldType = fieldType;
+    }
+
+    private String fieldType;
+
+
+
     public Integer getId() {
         return id;
     }

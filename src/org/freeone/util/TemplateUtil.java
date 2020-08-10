@@ -522,6 +522,8 @@ public class TemplateUtil {
                 FieldDeclaration field = (FieldDeclaration) member;
                 String fieldName = field.getVariables().get(0).getId().getName();
                 requestField.setFieldName(fieldName);
+                requestField.setFieldType(field.getType().toString());
+
                 List<AnnotationExpr> annotations = field.getAnnotations();
                 if (annotations != null && !annotations.isEmpty()){
                     annotations.forEach(annotation ->{
