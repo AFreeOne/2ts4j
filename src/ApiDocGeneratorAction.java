@@ -70,9 +70,13 @@ public class ApiDocGeneratorAction extends AnAction {
 
         VirtualFile[] virtualFiles = e.getData(PlatformDataKeys.VIRTUAL_FILE_ARRAY);
         if (virtualFiles == null || virtualFiles.length == 0) {
+
             NotificationUtil.createNotification("无法获取文件或文件夹", NotificationUtil.ERROR);
             return;
         }
+
+        boolean hasRequestFile = false;
+        LogPanelUtil.clearTextArea(project);
         for (VirtualFile virtualFile : virtualFiles) {
             if (virtualFile.isDirectory()) {
                 // 如果是一个文件夹
@@ -80,10 +84,12 @@ public class ApiDocGeneratorAction extends AnAction {
                 List<String> allJavaFilePath = TemplateUtil.getAllJavaFile(path, false);
                 for (String javaFilePath : allJavaFilePath) {
                     if (javaFilePath.endsWith("Request.java")) {
+                        hasRequestFile = true;
                         TbRequestClassEntity requestClassEntity = parseJavaRequestFileToServer(javaFilePath);
                         String responseFilePath = javaFilePath.replace("Request.java", "Response.java");
                         TbResponseClassEntity tbResponseClassEntity = parseJavaResponseFileToServer(responseFilePath);
                         if(null == requestClassEntity){
+                            LogPanelUtil.writeInfo(project,virtualFile.getName()+"没有请求类，将跳过解析");
                             continue;
                         }
                         if(tbResponseClassEntity == null){
@@ -91,7 +97,7 @@ public class ApiDocGeneratorAction extends AnAction {
                             continue;
                         }
                         if(tbResponseClassEntity.getResponseFieldList() == null || tbResponseClassEntity.getResponseFieldList().isEmpty() ){
-                            NotificationUtil.createNotification(requestClassEntity.getClassName()+"没有响应字段，请及时补充",NotificationUtil.WARNING);
+                            NotificationUtil.createNotification(requestClassEntity.getClassName()+"没有响应参数，请及时补充",NotificationUtil.WARNING);
                         }
 
                         DataBody dataBody = new DataBody();
@@ -105,7 +111,53 @@ public class ApiDocGeneratorAction extends AnAction {
                         }
                     }
                 }
+            }else{
+                // TODO
+                // 文件的路径
+
+                String path = virtualFile.getPath();
+                String name = virtualFile.getName();
+                path = path.replace("\\","/");
+                if (path.endsWith("Request.java") || path.endsWith("Response.java") ) {
+                    if(path.endsWith("Response.java")){
+                        path = path.replace("Response.java","Request.java");
+                    }
+                    hasRequestFile =true;
+                    TbRequestClassEntity requestClassEntity = parseJavaRequestFileToServer(path);
+                    if(null == requestClassEntity){
+                        LogPanelUtil.writeInfo(project,name+"没有请求类，将跳过解析");
+                        return;
+                    }
+                    path = path.replace("Request.java","Response.java");
+                    TbResponseClassEntity tbResponseClassEntity = parseJavaResponseFileToServer(path);
+                    if(tbResponseClassEntity == null){
+                        LogPanelUtil.writeInfo(project,requestClassEntity.getClassName()+"没有响应类,请查看文件是否正确");
+                        return;
+                    }
+                    if(tbResponseClassEntity.getResponseFieldList() == null || tbResponseClassEntity.getResponseFieldList().isEmpty() ){
+                        NotificationUtil.createNotification(tbResponseClassEntity.getClassName()+"没有响应参数，请及时补充",NotificationUtil.WARNING);
+                    }
+
+                    DataBody dataBody = new DataBody();
+                    dataBody.setRequestClass(requestClassEntity);
+                    dataBody.setResponseClass(tbResponseClassEntity);
+                    try {
+                        commitToServer(dataBody);
+                    } catch (JsonProcessingException jsonProcessingException) {
+                        jsonProcessingException.printStackTrace();
+
+                    }
+
+                }else{
+                    Messages.showInfoMessage("请选择Request或Response结尾的java文件","提示");
+                    return;
+                }
             }
+        }
+
+        if (!hasRequestFile){
+
+            LogPanelUtil.writeInfo(project,"没有找到相关类，将跳过解析");
         }
 
 
@@ -230,7 +282,7 @@ public class ApiDocGeneratorAction extends AnAction {
                 }
             }*/
 
-        } catch (IOException e) {
+        } catch (Exception e) {
             LogPanelUtil.writeInfo(project,e.getClass().getName() +": " + e.getLocalizedMessage());
             e.printStackTrace();
         } finally {

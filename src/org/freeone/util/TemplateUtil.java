@@ -44,7 +44,8 @@ public class TemplateUtil {
     /**
      * 原样输出
      */
-    static List<String> sourceType = Arrays.asList("Date","String","Integer","int","Boolean","boolean", "byte", "Byte", "short", "Short", "long", "Long", "float", "Float", "double", "Double", "BigDecimal");
+    static List<String> sourceType = Arrays.asList("Date","Map","String","Integer","int","Boolean","boolean", "byte", "Byte", "short", "Short", "long", "Long", "float", "Float", "double", "Double", "BigDecimal");
+
 
 
 
@@ -534,7 +535,7 @@ public class TemplateUtil {
                 JavadocComment javaDoc = field.getJavaDoc();
                 if (javaDoc != null){
                     String content = javaDoc.getContent();
-                    requestField.setDescription(content);
+                    requestField.setDescription(content.replace(" * ",""));
                 }
                 fieldList.add(requestField);
             }
@@ -559,85 +560,101 @@ public class TemplateUtil {
                 String fieldName = field.getVariables().get(0).getId().getName();
                 responseFieldEntity.setFieldName(fieldName);
                 String fieldTypeString = field.getType().toString();
+                JavadocComment javaDoc = field.getJavaDoc();
+                if (javaDoc != null){
+                    responseFieldEntity.setDescription(javaDoc.getContent().replace(" * ",""));
+                }
+
                 if(field.getType() instanceof PrimitiveType){
                     // 基本数据类型 直接放进去
                     responseFieldEntity.setFieldType(fieldTypeString);
                 }else{
                     // 引用数据类型
-                    if (!sourceType.contains(fieldTypeString)){
+                    if (!TemplateUtil.sourceType.contains(fieldTypeString)){
                         // TODO 不知名的类，判断import，查找类
                         ReferenceType fieldType = (ReferenceType) field.getType();
                         int arrayCount = fieldType.getArrayCount();
                         if(arrayCount == 1){
-                            //
+                            // 数组
+                            // 判断是不是基本数据类型 如int[]
                             if(fieldType.getType() instanceof PrimitiveType){
                                 responseFieldEntity.setFieldType(fieldTypeString);
                             }else{
-                                {
+                                // 都是引用数据类型
                                     ClassOrInterfaceType classOrInterfaceType = (ClassOrInterfaceType) fieldType.getType();
                                     String name = classOrInterfaceType.getName();
                                     fieldTypeString = name;
-                                    if(fieldTypeString.equals("List")){
-                                        fieldTypeString = getReturnType(classOrInterfaceType.getTypeArgs().get(0));
+                                    if(fieldTypeString.equals("List")){     // 这个是不怎么可能的                          fieldTypeString = getReturnType(classOrInterfaceType.getTypeArgs().get(0));
                                         responseFieldEntity.setFieldType("Object[]");
-                                    }else{
-                                        responseFieldEntity.setFieldType("Object");
-                                    }
-                                    List<String> allJavaFileInCurrentFolder = getAllJavaFile(currentJavaFileFolderPath, false);
-                                    String javaFilePathOfFieldType = null;
-                                    for (String s : allJavaFileInCurrentFolder) {
-                                        if (s.endsWith(fieldTypeString+".java")){
-                                            javaFilePathOfFieldType = s;
-                                            break;
+                                    }else if(sourceType.contains(fieldTypeString)) {        // 看看是不是类似于String[]
+                                        responseFieldEntity.setDescription(fieldTypeString+ "[]");
+                                    }else {                     // 不需要原样输出的话，都是要查找类的
+                                        responseFieldEntity.setFieldType("Object[]");
+                                        List<String> allJavaFileInCurrentFolder = getAllJavaFile(currentJavaFileFolderPath, false);
+                                        String javaFilePathOfFieldType = null;
+                                        for (String s : allJavaFileInCurrentFolder) {
+                                            if (s.endsWith(fieldTypeString+".java")){
+                                                javaFilePathOfFieldType = s;
+                                                break;
+                                            }
                                         }
-                                    }
-                                    if (javaFilePathOfFieldType == null){
-                                        NotificationUtil.createStickyNotification(fieldTypeString+".java无法找到",NotificationUtil.ERROR);
-                                    }else{
-                                        try {
-                                            List<TbResponseFieldEntity> nodeFieldList = getNodeFieldList(javaFilePathOfFieldType);
-                                            responseFieldEntity.setNodeFieldList(nodeFieldList);
-                                        } catch (IOException | ParseException e) {
-                                            e.printStackTrace();
-                                        }
+                                        if (javaFilePathOfFieldType == null ){
+                                                System.out.println(fieldTypeString+".java无法找到");
+                                                NotificationUtil.createStickyNotification(fieldTypeString+".java无法找到",NotificationUtil.ERROR);
+                                        }else{
+                                            try {
+                                                List<TbResponseFieldEntity> nodeFieldList = getNodeFieldList(javaFilePathOfFieldType);
+                                                responseFieldEntity.setNodeFieldList(nodeFieldList);
+                                            } catch (IOException | ParseException e) {
+                                                e.printStackTrace();
+                                            }
 
+                                        }
                                     }
-                                }
+
+
+
                             }
 
                         }else{
+                            // 不是数组
                             ClassOrInterfaceType classOrInterfaceType = (ClassOrInterfaceType) fieldType.getType();
                             String name = classOrInterfaceType.getName();
                             fieldTypeString = name;
                             if(fieldTypeString.equals("List")){
-                                fieldTypeString = getReturnType(classOrInterfaceType.getTypeArgs().get(0));
-                                responseFieldEntity.setFieldType("Object[]");
+                                fieldTypeString =  classOrInterfaceType.getTypeArgs().get(0).toString();
+                                if(sourceType.contains(fieldTypeString)){
+                                    responseFieldEntity.setFieldType(fieldTypeString + "[]");
+                                }else{
+                                    responseFieldEntity.setFieldType("Object[]");
+                                }
                             }else{
                                 responseFieldEntity.setFieldType("Object");
                             }
-                            List<String> allJavaFileInCurrentFolder = getAllJavaFile(currentJavaFileFolderPath, false);
-                            String javaFilePathOfFieldType = null;
-                            for (String s : allJavaFileInCurrentFolder) {
-                                if (s.endsWith(fieldTypeString+".java")){
-                                    javaFilePathOfFieldType = s;
-                                    break;
+                            if (!sourceType.contains(fieldTypeString)){
+                                List<String> allJavaFileInCurrentFolder = getAllJavaFile(currentJavaFileFolderPath, false);
+                                String javaFilePathOfFieldType = null;
+                                for (String s : allJavaFileInCurrentFolder) {
+                                    if (s.endsWith(fieldTypeString+".java")){
+                                        javaFilePathOfFieldType = s;
+                                        break;
+                                    }
                                 }
-                            }
-                            if (javaFilePathOfFieldType == null){
-                                NotificationUtil.createStickyNotification(fieldTypeString+".java无法找到",NotificationUtil.ERROR);
-                            }else{
-                                try {
-                                    List<TbResponseFieldEntity> nodeFieldList = getNodeFieldList(javaFilePathOfFieldType);
-                                    responseFieldEntity.setNodeFieldList(nodeFieldList);
-                                } catch (IOException | ParseException e) {
-                                    e.printStackTrace();
+                                if (javaFilePathOfFieldType == null){
+                                    if (!sourceType.contains(fieldTypeString)){
+                                        System.out.println(fieldTypeString+".java无法找到");
+                                        NotificationUtil.createStickyNotification(fieldTypeString+".java无法找到",NotificationUtil.ERROR);
+                                    }
+                                }else{
+                                    try {
+                                        List<TbResponseFieldEntity> nodeFieldList = getNodeFieldList(javaFilePathOfFieldType);
+                                        responseFieldEntity.setNodeFieldList(nodeFieldList);
+                                    } catch (IOException | ParseException e) {
+                                        e.printStackTrace();
+                                    }
                                 }
-
                             }
                         }
-
-
-
 
                     }else{
                         responseFieldEntity.setFieldType(fieldTypeString);
@@ -700,4 +717,6 @@ public class TemplateUtil {
     static int indexOf(CharSequence cs, CharSequence searchChar, int start) {
         return cs.toString().indexOf(searchChar.toString(), start);
     }
+
+
 }
