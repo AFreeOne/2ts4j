@@ -46,6 +46,8 @@ public class ApiDocGeneratorAction extends AnAction {
     public void actionPerformed(AnActionEvent e) {
         // TODO: insert action logic here
         this.project = e.getProject();
+        VirtualFile data = e.getData(PlatformDataKeys.PROJECT_FILE_DIRECTORY);
+        String projectPath = data.getPath();
 
         JBean2TsBeanComponent instance = JBean2TsBeanComponent.getInstance();
         Map<String, String> apidocMap = instance.getApidocMap();
@@ -70,7 +72,6 @@ public class ApiDocGeneratorAction extends AnAction {
 
         VirtualFile[] virtualFiles = e.getData(PlatformDataKeys.VIRTUAL_FILE_ARRAY);
         if (virtualFiles == null || virtualFiles.length == 0) {
-
             NotificationUtil.createNotification("无法获取文件或文件夹", NotificationUtil.ERROR);
             return;
         }
