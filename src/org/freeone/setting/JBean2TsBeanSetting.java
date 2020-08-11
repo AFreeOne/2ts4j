@@ -36,6 +36,7 @@ import java.util.Vector;
  * @author wengyongcheng
  * @since 2020/3/14 10:16 下午
  */
+@Deprecated
 public class JBean2TsBeanSetting implements Configurable,Configurable.Composite {
      JBPanel contentPane;
 

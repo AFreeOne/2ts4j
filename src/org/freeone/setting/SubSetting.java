@@ -14,6 +14,7 @@ import javax.swing.*;
  * @author wengyongcheng
  * @since 2020/3/14 10:20 下午
  */
+@Deprecated
 public class SubSetting implements Configurable {
     private JPanel mainPanel;
     private JTextField testField;
