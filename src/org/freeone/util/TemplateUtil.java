@@ -531,6 +531,8 @@ public class TemplateUtil {
                         String name = annotation.getName().getName();
                         requestField.setRequired("NotNull".equals(name) || "NotBlank".equals(name));
                     });
+                }else{
+                    requestField.setRequired(false);
                 }
                 JavadocComment javaDoc = field.getJavaDoc();
                 if (javaDoc != null){

@@ -9,6 +9,7 @@
     </description>
 
     <change-notes>
+        0.0.9 添加解析文档的工具
         0.0.8 add add java module declaration
         0.0.7 fix some problems &lt;br/&gt;
         0.0.6 add folder mapping to setting &lt;br/&gt;
