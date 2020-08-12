@@ -1,5 +1,6 @@
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.intellij.notification.EventLog;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
@@ -29,6 +30,7 @@ import org.freeone.util.LogPanelUtil;
 import org.freeone.util.NotificationUtil;
 import org.freeone.util.PlatformUtil;
 import org.freeone.util.TemplateUtil;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
@@ -43,9 +45,15 @@ public class ApiDocGeneratorAction extends AnAction {
     static String jwtValue = null;
 
     @Override
+    public void update(@NotNull AnActionEvent e) {
+        super.update(e);
+        
+    }
+
+    @Override
     public void actionPerformed(AnActionEvent e) {
-        // TODO: insert action logic here
-        this.project = e.getProject();
+
+        ApiDocGeneratorAction.project = e.getProject();
         VirtualFile data = e.getData(PlatformDataKeys.PROJECT_FILE_DIRECTORY);
         String projectPath = data.getPath();
 
@@ -55,7 +63,6 @@ public class ApiDocGeneratorAction extends AnAction {
             Messages.showErrorDialog("无法获取相关配置", "异常操作");
             return;
         }
-
         String serverPath1 = apidocMap.get("serverPath");
         if(serverPath1 == null || "".equals(serverPath1)){
             Messages.showWarningDialog("请先设置服务器的接口路径", "提示");
@@ -68,8 +75,6 @@ public class ApiDocGeneratorAction extends AnAction {
             return;
         }
         ApiDocGeneratorAction.jwtValue = jwt;
-
-
         VirtualFile[] virtualFiles = e.getData(PlatformDataKeys.VIRTUAL_FILE_ARRAY);
         if (virtualFiles == null || virtualFiles.length == 0) {
             NotificationUtil.createNotification("无法获取文件或文件夹", NotificationUtil.ERROR);
@@ -115,6 +120,9 @@ public class ApiDocGeneratorAction extends AnAction {
             }else{
                 // TODO
                 // 文件的路径
+
+
+
 
                 String path = virtualFile.getPath();
                 String name = virtualFile.getName();

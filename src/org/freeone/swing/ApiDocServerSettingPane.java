@@ -15,6 +15,7 @@ public class ApiDocServerSettingPane {
     public JTextField serverPathTextField;
     private JLabel tokenLabel;
     public JTextField jwtTextField;
+    private JLabel sdkPathLabel;
 
     public static void main(String[] args) {
         JFrame frame = new JFrame("ApiDocServerSettingPane");
@@ -41,18 +42,21 @@ public class ApiDocServerSettingPane {
     private void $$$setupUI$$$() {
         createUIComponents();
         settingPane = new JPanel();
-        settingPane.setLayout(new GridLayoutManager(3, 2, new Insets(0, 0, 0, 0), -1, -1));
+        settingPane.setLayout(new GridLayoutManager(4, 2, new Insets(0, 0, 0, 0), -1, -1));
         serverPathLabel = new JLabel();
-        serverPathLabel.setText("服务器路径：");
+        serverPathLabel.setText("服务器路径12：");
         settingPane.add(serverPathLabel, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         final Spacer spacer1 = new Spacer();
-        settingPane.add(spacer1, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1, GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
+        settingPane.add(spacer1, new GridConstraints(3, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1, GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
         tokenLabel = new JLabel();
         tokenLabel.setText("JWT：");
         settingPane.add(tokenLabel, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         jwtTextField.setText("");
         settingPane.add(jwtTextField, new GridConstraints(1, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(150, -1), null, 0, false));
         settingPane.add(serverPathTextField, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(150, -1), null, 0, false));
+        sdkPathLabel = new JLabel();
+        sdkPathLabel.setText("SDK路径");
+        settingPane.add(sdkPathLabel, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
     }
 
     /**
@@ -65,8 +69,6 @@ public class ApiDocServerSettingPane {
     private void createUIComponents() {
         serverPathTextField = new JTextField();
         jwtTextField = new JTextField();
-
-
 
 
     }
