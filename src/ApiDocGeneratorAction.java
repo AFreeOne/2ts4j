@@ -13,8 +13,9 @@ import japa.parser.ast.CompilationUnit;
 import japa.parser.ast.PackageDeclaration;
 import japa.parser.ast.body.BodyDeclaration;
 import japa.parser.ast.body.ClassOrInterfaceDeclaration;
-import japa.parser.ast.body.JavadocComment;
+
 import japa.parser.ast.body.TypeDeclaration;
+import japa.parser.ast.comments.JavadocComment;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.ClientProtocolException;

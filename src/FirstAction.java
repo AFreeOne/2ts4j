@@ -8,12 +8,13 @@ import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentManager;
 import japa.parser.JavaParser;
-import japa.parser.ParseException;
+
 import japa.parser.ast.CompilationUnit;
 import japa.parser.ast.ImportDeclaration;
 import japa.parser.ast.PackageDeclaration;
 import japa.parser.ast.TypeParameter;
 import japa.parser.ast.body.*;
+import japa.parser.ast.comments.JavadocComment;
 import japa.parser.ast.expr.*;
 import japa.parser.ast.stmt.BlockStmt;
 import japa.parser.ast.stmt.ExpressionStmt;

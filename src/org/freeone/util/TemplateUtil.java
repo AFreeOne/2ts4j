@@ -9,8 +9,9 @@ import japa.parser.ast.ImportDeclaration;
 import japa.parser.ast.TypeParameter;
 import japa.parser.ast.body.BodyDeclaration;
 import japa.parser.ast.body.FieldDeclaration;
-import japa.parser.ast.body.JavadocComment;
+
 import japa.parser.ast.body.VariableDeclarator;
+import japa.parser.ast.comments.JavadocComment;
 import japa.parser.ast.expr.AnnotationExpr;
 import japa.parser.ast.type.ClassOrInterfaceType;
 import japa.parser.ast.type.PrimitiveType;

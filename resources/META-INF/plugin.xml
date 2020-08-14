@@ -9,8 +9,8 @@
     </description>
 
     <change-notes>
-        0.0.9 添加解析文档的工具
-        0.0.8 add add java module declaration
+        0.0.9 use java parser from 1.0.8->1.0.11 &lt;br/&gt;
+        0.0.8 add add java module declaration &lt;br/&gt;
         0.0.7 fix some problems &lt;br/&gt;
         0.0.6 add folder mapping to setting &lt;br/&gt;
         0.0.5 add description &lt;br/&gt;
@@ -30,10 +30,10 @@
         <action id="FirstAction" class="FirstAction" text="java bean to ts bean" description="java bean to ts bean">
             <add-to-group group-id="ProjectViewPopupMenuModifyGroup" anchor="after" relative-to-action="$Delete"/>
         </action>
-        <action id="ApiDocGeneratorAction" class="ApiDocGeneratorAction" text="解析文档"
+        <!--<action id="ApiDocGeneratorAction" class="ApiDocGeneratorAction" text="解析文档"
                 description="ApiDocGeneratorAction">
             <add-to-group group-id="ProjectViewPopupMenuModifyGroup" anchor="after" relative-to-action="$Delete"/>
-        </action>
+        </action>-->
     </actions>
 
 </idea-plugin>
