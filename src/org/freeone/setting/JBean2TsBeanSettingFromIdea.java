@@ -59,7 +59,6 @@ public class JBean2TsBeanSettingFromIdea implements Configurable,Configurable.Co
     @Override
     public Configurable[] getConfigurables() {
         Configurable[] configurables = new Configurable[1];
-        configurables[0] = new ApiDocServerSetting();
         return configurables;
     }
 

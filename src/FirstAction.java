@@ -7,22 +7,26 @@ import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentManager;
-import japa.parser.JavaParser;
 
 import japa.parser.ast.CompilationUnit;
 import japa.parser.ast.ImportDeclaration;
 import japa.parser.ast.PackageDeclaration;
 import japa.parser.ast.TypeParameter;
+
 import japa.parser.ast.body.*;
-import japa.parser.ast.comments.JavadocComment;
+import japa.parser.ast.comments.Comment;
+
+
 import japa.parser.ast.expr.*;
 import japa.parser.ast.stmt.BlockStmt;
 import japa.parser.ast.stmt.ExpressionStmt;
 import japa.parser.ast.stmt.ReturnStmt;
 import japa.parser.ast.stmt.Statement;
+
 import japa.parser.ast.type.*;
 import org.freeone.setting.JBean2TsBeanComponent;
 import org.freeone.util.FolderUtil;
+import org.freeone.util.JavaParseUtil;
 import org.freeone.util.NotificationUtil;
 import org.freeone.util.TemplateUtil;
 import org.jetbrains.annotations.NotNull;
@@ -207,7 +211,7 @@ public class FirstAction extends AnAction {
             }
 
             // 解析java文件获取解析之后的对象
-            CompilationUnit parse = JavaParser.parse(javaFile,"utf-8");
+            CompilationUnit parse = JavaParseUtil.parseJavaFile(javaFile);
             StringBuilder typeScriptFileContent = new StringBuilder();
             // 获取包路径
             PackageDeclaration aPackage = parse.getPackage();
@@ -226,6 +230,7 @@ public class FirstAction extends AnAction {
 
             List<TypeDeclaration> types = parse.getTypes();
             // 获取第一个class
+
             ClassOrInterfaceDeclaration javaClass = (ClassOrInterfaceDeclaration)types.get(0);
             // 临时的成员，用于查找属性，用户辨认是否在当前文件
             List<BodyDeclaration> temMembers = javaClass.getMembers();
@@ -256,9 +261,10 @@ public class FirstAction extends AnAction {
             Set<String> allField = TemplateUtil.getAllField(temMembers);
             typeScriptFileContent.append("\n");
             // 注释
-            JavadocComment classJavaDoc = javaClass.getJavaDoc();
-            if (classJavaDoc != null){
-                typeScriptFileContent.append(classJavaDoc.toString());
+
+            Comment comment = javaClass.getComment();
+            if (comment != null){
+                typeScriptFileContent.append(comment.toString());
             }
 
             String javaClassName = javaClass.getName();
@@ -341,9 +347,10 @@ public class FirstAction extends AnAction {
     public static String getTemplateFromField(FieldDeclaration field, Map<String,String> fieldMap){
         StringBuilder fieldTemplate = new StringBuilder();
         // 注释
-        JavadocComment javaDoc = field.getJavaDoc();
-        if (javaDoc != null){
-            fieldTemplate.append("    "+javaDoc.toString());
+        Comment comment = field.getComment();
+
+        if (comment != null){
+            fieldTemplate.append("    "+comment.toString());
         }
         // 字段权限
         int modifiers = field.getModifiers();
@@ -432,9 +439,10 @@ public class FirstAction extends AnAction {
     public static String getTemplateFromMethod(MethodDeclaration method, Set<String> allFields){
         StringBuilder methodTemplate = new StringBuilder();
         // 注释
-        JavadocComment javaDoc = method.getJavaDoc();
-        if (javaDoc != null){
-            methodTemplate.append("    ").append(javaDoc.toString());
+        Comment comment = method.getComment();
+
+        if (comment != null){
+            methodTemplate.append("    ").append(comment.toString());
         }
         // 字段权限
         int modifiers = method.getModifiers();

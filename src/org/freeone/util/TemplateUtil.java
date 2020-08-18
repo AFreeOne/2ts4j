@@ -11,6 +11,7 @@ import japa.parser.ast.body.BodyDeclaration;
 import japa.parser.ast.body.FieldDeclaration;
 
 import japa.parser.ast.body.VariableDeclarator;
+import japa.parser.ast.comments.Comment;
 import japa.parser.ast.comments.JavadocComment;
 import japa.parser.ast.expr.AnnotationExpr;
 import japa.parser.ast.type.ClassOrInterfaceType;
@@ -535,9 +536,10 @@ public class TemplateUtil {
                 }else{
                     requestField.setRequired(false);
                 }
-                JavadocComment javaDoc = field.getJavaDoc();
-                if (javaDoc != null){
-                    String content = javaDoc.getContent();
+                Comment comment = field.getComment();
+
+                if (comment != null){
+                    String content = comment.getContent();
                     requestField.setDescription(content.replace(" * ",""));
                 }
                 fieldList.add(requestField);
@@ -563,9 +565,9 @@ public class TemplateUtil {
                 String fieldName = field.getVariables().get(0).getId().getName();
                 responseFieldEntity.setFieldName(fieldName);
                 String fieldTypeString = field.getType().toString();
-                JavadocComment javaDoc = field.getJavaDoc();
-                if (javaDoc != null){
-                    responseFieldEntity.setDescription(javaDoc.getContent().replace(" * ",""));
+                Comment comment = field.getComment();
+                if (comment != null){
+                    responseFieldEntity.setDescription(comment.getContent().replace(" * ",""));
                 }
 
                 if(field.getType() instanceof PrimitiveType){
