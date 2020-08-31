@@ -392,10 +392,12 @@ public class FirstAction extends AnAction {
             // 可能是List，也是能是基础数据类型
             if("List".equals(typeName)){
                 if (field.getType() instanceof ReferenceType){
-                    String string = classOrInterfaceType.toString();
-                    String replace = string.replace("List<", "Array<");
-                    fieldTemplate.append(replace+";\n");
-                    fieldMap.put(name,replace);
+
+                    String returnType = TemplateUtil.getReturnType(field.getType());
+                  /*  String string = classOrInterfaceType.toString();
+                    String replace = string.replace("List<", "Array<");*/
+                    fieldTemplate.append(returnType).append(";\n");
+                    fieldMap.put(name,returnType);
                 }else{
                     String string = classOrInterfaceType.toString();
                     String replace = string.replace("List<", "Array<");
