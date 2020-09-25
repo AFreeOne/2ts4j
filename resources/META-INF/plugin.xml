@@ -1,14 +1,18 @@
 <idea-plugin url="https://github.com/AFreeOne">
     <id>org.freeone.2ts4j</id>
     <name>java bean to ts bean</name>
-    <version>0.0.9</version>
+    <version>0.0.10</version>
     <vendor email="1357441309@qq.com" url="https://github.com/AFreeOne">LiQingQing</vendor>
 
     <description>
         adds support for transforming DTO java file to typeScript bean file
+        <![CDATA[
+            <a href="https://github.com/AFreeOne/jbean2tsbean">open source</a>
+        ]]>
     </description>
 
     <change-notes>
+        0.0.10 fix problem of transforming type "List"  &lt;br/&gt;
         0.0.9 use java parser from 1.0.8->1.0.11 &lt;br/&gt;
         0.0.8 add add java module declaration &lt;br/&gt;
         0.0.7 fix some problems &lt;br/&gt;
